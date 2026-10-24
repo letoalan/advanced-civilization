@@ -12,6 +12,7 @@ import { anchors, BOARD_VIEWBOX, MAP_PANELS, ALL_SHAPES, COAST_SUBS, mainToCombi
 // Territory polygon per area id, for full-polygon selection/highlight on the board.
 const SHAPE_BY_ID = new Map(ALL_SHAPES.map((s) => [s.id, s]));
 import { useMapArt, type MapArt } from './mapArt.js';
+import { features } from '../config/features.js';
 
 // The rules-default four-player game (§16.6, eastern panels): these are exactly
 // the four nations §16.6 makes available, so the default picks are legal.
@@ -171,9 +172,9 @@ export default function App() {
     setState(createGame({ players, seed, maxTurns: 60, boardPreset, chooseStartAreas: true, autoSkip: true }));
     setView('map');
     setStarted(true);
-    // Best-effort games-played counter (once per local game start). Local games
-    // always include AI opponents, so the mode is 'ai'. Never throws/blocks.
-    void recordPlay('advanced-civilization', 'ai');
+    if (features.externalHub) {
+      void recordPlay('advanced-civilization', 'ai');
+    }
   }, []);
 
   const actor = adapter.currentActor(state);
@@ -187,7 +188,7 @@ export default function App() {
   const wasOver = useRef(!!result);
   useEffect(() => {
     const over = !!result;
-    if (started && over && !wasOver.current && result) {
+    if (started && over && !wasOver.current && result && features.externalHub) {
       const w = result.winners;
       const outcome = w.length === 0 ? 'draw'
         : !w.includes(config.human) ? 'loss'
@@ -2621,7 +2622,11 @@ export function ReportModal({ mine, onSend, onDownload, onClose }: { mine: MyRep
 function HotseatReport({ state, focus }: { state: GameState; focus: PlayerId }) {
   const [open, setOpen] = useState(false);
   const [mine, setMine] = useState<MyReport[]>([]);
-  const refreshMine = useCallback(() => { fetchMyReports('').then(setMine).catch(() => {}); }, []);
+  const refreshMine = useCallback(() => {
+    if (features.remoteReports) {
+      fetchMyReports('').then(setMine).catch(() => {});
+    }
+  }, []);
   useEffect(() => { refreshMine(); }, [refreshMine]);
   const answered = mine.filter((r) => resolutionNote(r.resolution));
   const download = () => {
@@ -2631,6 +2636,7 @@ function HotseatReport({ state, focus }: { state: GameState; focus: PlayerId }) 
     URL.revokeObjectURL(url);
   };
   const send = async (message: string, severity: string) => {
+    if (!features.remoteReports) return 'offline';
     const { reportId } = await submitStandaloneReport('', {
       message, severity, category: REPORT_CATEGORY,
       serverSnapshot: JSON.stringify(state), reporterSide: focus, turnNumber: state.turn,
@@ -2640,6 +2646,13 @@ function HotseatReport({ state, focus }: { state: GameState; focus: PlayerId }) 
     setTimeout(refreshMine, 500);
     return reportId;
   };
+  if (!features.remoteReports) {
+    return (
+      <button className="civ-btn" onClick={download} title="Télécharger un export technique local">
+        Exporter diagnostic
+      </button>
+    );
+  }
   return (
     <>
       <button className="civ-btn" onClick={() => { refreshMine(); setOpen(true); }}>Report a problem{answered.length ? ` (${answered.length} ✓)` : ''}</button>
