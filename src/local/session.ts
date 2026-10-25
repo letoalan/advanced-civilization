@@ -57,7 +57,7 @@ export function createLocalSession(config: LocalSessionConfig): GameState {
     players,
     seed,
     maxTurns: 60,
-    boardPreset: config.boardPresetId,
+    boardPreset: config.boardPresetId || undefined,
     chooseStartAreas: true,
     autoSkip: true,
   });

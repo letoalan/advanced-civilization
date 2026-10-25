@@ -4,12 +4,13 @@ import { UpdateBanner, SplashScreen } from 'digital-boardgame-framework/client';
 import App from './App.js';
 import { Lobby, OnlineGame } from './online.js';
 import DevApp from './dev/DevApp.js';
+import { HomeScreen } from './screens/HomeScreen.js';
+import { LocalSetupScreen } from './screens/LocalSetupScreen.js';
+import type { LocalSessionConfig, LocalSaveFile } from '../local/types.js';
 import { fetchUnseenResponses, markResponseSeen, resolutionNote, submitStandaloneReport, type MyReport } from '../client/api.js';
 import { REPORT_CATEGORY } from '../report-meta.js';
-
 import { features } from '../config/features.js';
 
-/** Catches render/runtime crashes so the app shows a recoverable message instead of a blank screen. */
 class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null; sent: boolean }> {
   state = { error: null as Error | null, sent: false };
   static getDerivedStateFromError(error: Error) { return { error, sent: false }; }
@@ -20,7 +21,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
       const key = `advciv-crash:${error.message}`;
       alreadySent = sessionStorage.getItem(key) === '1';
       sessionStorage.setItem(key, '1');
-    } catch { /* storage unavailable — fall through and file once */ }
+    } catch { /* ignore */ }
     if (alreadySent) { this.setState({ sent: true }); return; }
     submitStandaloneReport('', { message: `App crashed: ${error.message}\n${(error.stack ?? '').slice(0, 1500)}`, severity: 'bug', category: REPORT_CATEGORY, clientBuild: 'web-ui', userAgent: navigator.userAgent })
       .then(() => this.setState({ sent: true })).catch(() => {});
@@ -38,8 +39,6 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
   }
 }
 
-/** "Reply to your problem report" — pops on game open when a report this device
- *  filed has been resolved with a note (one pop per reply, tracked in storage). */
 function ReportResponseModal({ r, onDismiss }: { r: MyReport; onDismiss: () => void }) {
   return (
     <div onClick={onDismiss} style={{ position: 'fixed', inset: 0, background: 'rgba(8,6,3,0.78)', display: 'grid', placeItems: 'center', zIndex: 200 }}>
@@ -59,10 +58,8 @@ function Root() {
   const game = params.get('game');
   const token = params.get('token');
 
-  // Dev authoring tools (territory polygons, categories, adjacency). Local only.
   if (params.has('dev')) return <DevApp />;
 
-  // On open, surface any responses to this device's reports if remoteReports is active.
   const [replies, setReplies] = useState<MyReport[]>([]);
   useEffect(() => {
     if (features.remoteReports) {
@@ -72,7 +69,10 @@ function Root() {
   const reply = replies[0];
   const modal = reply ? <ReportResponseModal r={reply} onDismiss={() => { markResponseSeen(reply.reportId); setReplies((rs) => rs.slice(1)); }} /> : null;
 
-  const [mode, setMode] = useState<'menu' | 'hotseat' | 'online'>('menu');
+  const [mode, setMode] = useState<'home' | 'setup' | 'game' | 'online'>('home');
+  const [activeConfig, setActiveConfig] = useState<LocalSessionConfig | undefined>();
+  const [activeSave, setActiveSave] = useState<LocalSaveFile | undefined>();
+
   let body: React.ReactNode;
 
   if (game && token) {
@@ -87,38 +87,34 @@ function Root() {
         </div>
       );
     }
-  } else if (mode === 'hotseat') {
-    body = <App />;
+  } else if (mode === 'home') {
+    body = (
+      <HomeScreen
+        onNewGame={() => setMode('setup')}
+        onResumeGame={(save) => { setActiveSave(save); setActiveConfig(undefined); setMode('game'); }}
+        onImportSave={(save) => { setActiveSave(save); setActiveConfig(undefined); setMode('game'); }}
+      />
+    );
+  } else if (mode === 'setup') {
+    body = (
+      <LocalSetupScreen
+        onLaunch={(cfg) => { setActiveConfig(cfg); setActiveSave(undefined); setMode('game'); }}
+        onBack={() => setMode('home')}
+      />
+    );
+  } else if (mode === 'game') {
+    body = <App sessionConfig={activeConfig} initialSave={activeSave} onExitToMenu={() => setMode('home')} />;
   } else if (mode === 'online' && features.onlineMultiplayer) {
     body = <Lobby />;
-  } else {
-    body = (
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, color: '#eee' }}>
-        <h1 style={{ margin: 0 }}>Advanced Civilization</h1>
-        <div style={{ display: 'flex', gap: 12 }}>
-          <button className="civ-btn" style={{ fontSize: 16, padding: '10px 18px' }} onClick={() => setMode('hotseat')}>Partie locale (Hotseat & IA)</button>
-          <button className="civ-btn" style={{ fontSize: 16, padding: '10px 18px', opacity: 0.5, cursor: 'not-allowed' }} disabled title="Non disponible dans la version locale autonome">
-            Multijoueur en ligne (indisponible)
-          </button>
-        </div>
-        <p className="civ-lbl" style={{ color: '#aaa', maxWidth: 560, textAlign: 'center' }}>
-          Le jeu local s'exécute intégralement dans votre navigateur et sauvegarde automatiquement votre progression sur cet appareil.
-        </p>
-      </div>
-    );
   }
+
   return <>{modal}{body}</>;
 }
 
-// The dev authoring tools (?dev) keep the update banner (a thin top strip, so you
-// still get "reload" when a new build ships) but drop the full-screen splash modal
-// that would cover the editor.
 const isDev = new URLSearchParams(location.search).has('dev');
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    {/* Shows a "A new version is available — Reload" banner when a newer build
-        is deployed while this tab is open (polls /version.json). */}
     <UpdateBanner currentBuild={__DBF_BUILD_ID__} />
     {!isDev && <SplashScreen title="Advanced Civilization" appId="advanced-civilization" />}
     <ErrorBoundary><Root /></ErrorBoundary>

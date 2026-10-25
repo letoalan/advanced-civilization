@@ -16,7 +16,7 @@ export interface LocalSeat {
 /** Paramètres d'une partie locale autonome. */
 export interface LocalSessionConfig {
   seats: LocalSeat[];
-  boardPresetId: string;
+  boardPresetId?: string | null;
   /** Mode de confidentialité : table ouverte (visible) ou passage de main (secret). */
   privacyMode: 'open-table' | 'handoff';
   /** Cadence d'exécution de l'IA : instantanée ou lisible (délai d'observation). */
