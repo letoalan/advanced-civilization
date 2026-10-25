@@ -28,6 +28,8 @@ function errToStatus(message: string): number {
   return 400;
 }
 
+import { handleReportRoutes } from './reportRoutes.js';
+
 /** Route one request. `query` carries the per-seat `?token=`. `putReport` (when
  *  provided) backs the standalone `POST /api/report` used by hotseat play, which
  *  has no game/token to attach a report to. */
@@ -42,68 +44,9 @@ export async function handleApi(
   const segs = pathname.replace(/\/+$/, '').split('/').filter(Boolean);
   if (segs[0] !== 'api') return { status: 404, body: { error: 'not found' } };
 
-  // ---- a reporter's own reports + resolutions (responses inbox) ----
-  if (segs[1] === 'report' && segs.length === 2 && method === 'GET') {
-    const reporter = query.get('reporter');
-    if (!reporter) return { status: 422, body: { error: 'reporter required' } };
-    const marker = `reporter:${reporter}`;
-    try {
-      const all = await server.listReports({ bodies: false });   // inbox shows no state; skip the blobs
-      const mine = all
-        .filter((r) => {
-          const msg = r.message ?? '';
-          if (msg.includes(marker)) return true;
-          // Legacy reports submitted before reporter-tagging existed: in the
-          // single-reporter hotseat context, surface untagged hotseat reports too.
-          const untagged = !/<!--\s*reporter:/.test(msg);
-          return untagged && r.gameId === 'hotseat' && (r.clientBuild ?? '').includes('web-ui-hotseat');
-        })
-        .map((r) => ({
-          reportId: r.reportId,
-          message: (r.message ?? '').replace(/\s*<!--\s*reporter:[^>]*-->\s*/g, '').trim(),
-          severity: r.severity,
-          category: r.category,
-          createdAt: r.createdAt,
-          resolution: r.resolution ?? null,
-          // tagged = this exact device filed it (safe to auto-pop). Untagged
-          // legacy reports show in the list but are not auto-popped to everyone.
-          tagged: (r.message ?? '').includes(marker),
-        }))
-        .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
-      return { status: 200, body: { reports: mine } };
-    } catch (e) {
-      return { status: 500, body: { error: (e as Error).message } };
-    }
-  }
+  const reportRes = await handleReportRoutes(server, method, segs, query, body, putReport);
+  if (reportRes) return reportRes;
 
-  // ---- standalone bug report (hotseat — no game) ----
-  if (segs[1] === 'report' && segs.length === 2 && method === 'POST') {
-    if (!putReport) return { status: 501, body: { error: 'reporting is not configured on this host' } };
-    const b = (body ?? {}) as Partial<BugReportRow> & { snapshot?: string };
-    if (typeof b.message !== 'string' || !b.message.trim()) return { status: 422, body: { error: 'message required' } };
-    const reportId = (globalThis.crypto?.randomUUID?.() ?? `r-${Date.now()}-${Math.round(Math.random() * 1e9)}`);
-    const snapshot = b.serverSnapshot ?? b.snapshot ?? '';
-    try {
-      await putReport({
-        reportId,
-        gameId: b.gameId ?? 'hotseat',
-        reporterSide: b.reporterSide ?? '?',
-        turnNumber: b.turnNumber ?? 0,
-        serverSnapshot: snapshot,
-        reporterView: snapshot,
-        clientLog: Array.isArray(b.clientLog) ? b.clientLog : [],
-        message: b.message,
-        severity: b.severity ?? 'bug',
-        category: b.category ?? REPORT_CATEGORY,
-        clientBuild: b.clientBuild,
-        userAgent: b.userAgent,
-        createdAt: new Date().toISOString(),
-      });
-      return { status: 200, body: { reportId } };
-    } catch (e) {
-      return { status: 500, body: { error: (e as Error).message } };
-    }
-  }
   const token = query.get('token') ?? '';
 
   try {
@@ -162,30 +105,7 @@ export async function handleApi(
       }
     }
 
-    // ---- reports (public triage, PII-free; see CLAUDE.md trust-tier split) ----
-    if (segs[1] === 'reports') {
-      if (segs.length === 2 && method === 'GET') {
-        // Forward the supported filters so triage can scope by app (category),
-        // severity, recency, or game. The shared backend holds several ports'
-        // reports; `?category=advciv` is what isolates this game's queue.
-        const filter: ReportFilter = {};
-        if (query.get('unresolved') === '1') filter.unresolved = true;
-        const category = query.get('category'); if (category) filter.category = category;
-        const appId = query.get('app_id'); if (appId) filter.appId = appId;
-        const severity = query.get('severity'); if (severity) filter.severity = severity;
-        const since = query.get('since'); if (since) filter.since = since;
-        const gameId = query.get('gameId'); if (gameId) filter.gameId = gameId;
-        // ?full=1 → include the state blobs (serverSnapshot/reporterView/
-        // clientLog). Otherwise the DB isn't even asked for them: a 670-row
-        // listing on the shared backend was 40 MB / 10–12 s when it was.
-        filter.bodies = query.get('full') === '1';
-        return { status: 200, body: await server.listReports(filter) };
-      }
-      if (segs[3] === 'resolve' && method === 'POST') {
-        await server.resolveReport(segs[2]!, (body as { note?: string })?.note ?? '');
-        return { status: 200, body: { ok: true } };
-      }
-    }
+
 
     return { status: 404, body: { error: 'no route', pathname, method } };
   } catch (e) {

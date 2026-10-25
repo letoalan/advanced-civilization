@@ -10,24 +10,34 @@
     <title>Advanced Civilization</title>
     <style>
       :root { color-scheme: dark; }
-      body { margin: 0; font-family: system-ui, sans-serif; background: #1a1410; color: #eee; }
+      body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; background: #0c0907; color: #eee; }
       #root { display: flex; flex-direction: column; height: 100vh; }
-      /* 1995-style orange/tan control theme */
-      .civ-bar { background: #b9702a; border-top: 3px solid #6e3f12; }
-      .civ-panel { background: #d9974a; border: 2px solid #7a4a18; border-radius: 4px; color: #3a2207; }
-      .civ-msg { background: #efd9a8; border: 2px solid #7a4a18; border-radius: 4px; color: #5a2d0a; font-weight: 700; }
-      .civ-btn { background: #e89a36; border: 2px solid #7a4a18; border-radius: 4px; color: #3a2207;
-                 font-weight: 700; padding: 4px 8px; cursor: pointer; font-size: 12px; }
-      .civ-btn:hover { background: #f4b455; }
-      .civ-btn:disabled { opacity: .5; cursor: default; }
-      .civ-btn.on { background: #f6c66e; box-shadow: inset 0 0 0 2px #7a4a18; }
-      .civ-nav { background: #c8782a; border: 2px solid #7a4a18; color: #3a2207; font-weight: 800;
-                 padding: 6px 4px; cursor: pointer; font-size: 12px; letter-spacing: .5px; }
-      .civ-nav.on { background: #f6c66e; }
-      .civ-tab { flex: 1; text-align: center; padding: 3px; font-weight: 800; font-size: 12px;
-                 background: #b9702a; color: #4a2a0a; border-right: 1px solid #7a4a18; cursor: pointer; }
-      .civ-tab.act { background: #f6c66e; }
-      .civ-lbl { font-size: 10px; letter-spacing: .5px; color: #5a3410; font-weight: 700; }
+
+      /* Sleek dark bronze & gold antiquities theme */
+      .civ-bar { background: #18120d; border-top: 2px solid #5a3d1c; }
+      .civ-panel { background: #1a140e; border: 1px solid #5a3d1c; border-radius: 6px; color: #e8dec8; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+      .civ-msg { background: #261c13; border: 1px solid #8c602a; border-radius: 6px; color: #fbf2e0; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.35); }
+      .civ-btn { background: linear-gradient(180deg, #382816 0%, #24180d 100%); border: 1px solid #8c602a; border-radius: 6px;
+                 color: #ffd23f; font-weight: 700; padding: 6px 10px; cursor: pointer; font-size: 12px; transition: all .15s ease;
+                 box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+      .civ-btn:hover { background: linear-gradient(180deg, #4d3820 0%, #342314 100%); border-color: #ffd23f; color: #fff; }
+      .civ-btn:disabled { opacity: .4; cursor: default; filter: grayscale(50%); }
+      .civ-btn.on { background: #96672c; color: #fff; border-color: #ffd23f; box-shadow: 0 0 10px rgba(255,210,63,0.35); }
+      .civ-nav { background: #1e1610; border: 1px solid #4a3015; border-radius: 5px; color: #ded4bf; font-weight: 700;
+                 padding: 5px 8px; cursor: pointer; font-size: 11px; letter-spacing: .4px; transition: all .15s ease; }
+      .civ-nav:hover { background: #332415; color: #ffd23f; border-color: #7a4f20; }
+      .civ-nav.on { background: #6b4317; color: #fff; border-color: #ffd23f; box-shadow: 0 0 8px rgba(255,210,63,0.25); }
+      .civ-tab { flex: 1; text-align: center; padding: 6px 4px; font-weight: 700; font-size: 12px;
+                 background: #150f0a; color: #b8ac95; border-right: 1px solid #2d1c0d; cursor: pointer; transition: background .15s; }
+      .civ-tab:hover { background: #261a10; color: #e8dec8; }
+      .civ-tab.act { background: #382412; color: #ffd23f; border-bottom: 2px solid #ffd23f; }
+      .civ-lbl { font-size: 11px; letter-spacing: .3px; color: #e2d7c0; font-weight: 500; line-height: 1.45; }
+
+      /* Sleek dark scrollbars */
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: rgba(0,0,0,0.25); }
+      ::-webkit-scrollbar-thumb { background: #4a321a; border-radius: 3px; }
+      ::-webkit-scrollbar-thumb:hover { background: #7a4f20; }
     </style>
   </head>
   <body>
