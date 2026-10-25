@@ -135,7 +135,7 @@ export default function App({ sessionConfig, initialSave, onExitToMenu }: AppPro
 
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
           {view === 'map' ? (
-            <div ref={boardRef} style={{ flex: 1, position: 'relative', overflow: 'auto', background: '#0d3a4a', display: 'flex' }}>
+            <div ref={boardRef} style={{ flex: 1, position: 'relative', overflow: 'auto', background: '#0b1922', display: 'flex' }}>
               <Board state={state} selected={selectedArea} onSelect={handleSelectArea} highlight={activeHighlights} origin={planner.origin} moved={planner.moved} art={mapArt.art} />
               <MapArtBanner mapArt={mapArt} />
             </div>

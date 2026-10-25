@@ -1,4 +1,4 @@
-import { useState, useRef, useLayoutEffect, type CSSProperties } from 'react';
+import { useState } from 'react';
 import { anchors, BOARD_VIEWBOX, ALL_SHAPES } from '../../anchors.js';
 import { areaById } from '../../../data/index.js';
 import { outOfPlay } from '../../../engine/helpers.js';
@@ -6,20 +6,14 @@ import type { GameState } from '../../../engine/types.js';
 import type { MapArt } from '../../mapArt.js';
 import { usePeekContext } from './AreaPeekContext.js';
 import { BoardBackground } from './BoardBackground.js';
-import { CityMarker, TokenMarker, ShipMarker, CapacityBadge, TerrainGlyphs } from './BoardTokens.js';
+import { CityMarker, TokenMarker, ShipMarker, CapacityBadge, CitySiteEmblem, VolcanoEmblem, FloodplainEmblem } from './BoardTokens.js';
 import { AreaTooltip } from './AreaTooltip.js';
+import { BoardLabels } from './BoardLabels.js';
+import { BoardControls } from './BoardControls.js';
+import { useBoardNavigation } from './useBoardNavigation.js';
+import { getStoredBoardStyle, setStoredBoardStyle, type BoardStyle, ATLAS_THEME, CLASSIC_THEME } from './boardTheme.js';
 
 const SHAPE_BY_ID = new Map(ALL_SHAPES.map((s) => [s.id, s]));
-const MAP_BTN: CSSProperties = {
-  cursor: 'pointer',
-  fontSize: 12,
-  padding: '4px 9px',
-  borderRadius: 6,
-  border: '1px solid #7a4a18',
-  background: 'rgba(13,58,74,0.88)',
-  color: '#fff',
-};
-const ZOOM_LEVELS = [1, 1.5, 2, 3];
 
 export interface BoardProps {
   state: GameState;
@@ -36,66 +30,32 @@ export function Board({ state, selected, onSelect, highlight, zoomTo, origin, mo
   const [hovered, setHovered] = useState<string | null>(null);
   const { peek } = usePeekContext();
   const [showTerrain, setShowTerrain] = useState(false);
-  const [zoom, setZoomRaw] = useState<number>(() => {
-    try {
-      const v = Number(localStorage.getItem('advciv-board-zoom'));
-      return ZOOM_LEVELS.includes(v) ? v : 1;
-    } catch {
-      return 1;
-    }
-  });
+  const [style, setStyle] = useState<BoardStyle>(getStoredBoardStyle);
 
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const pendingCenter = useRef<{ fx: number; fy: number } | null>(null);
-  const isDragging = useRef(false);
-  const dragStart = useRef({ x: 0, y: 0, sl: 0, st: 0 });
-  const hasDragged = useRef(false);
+  const {
+    zoom,
+    boardWidth,
+    boardHeight,
+    wrapRef,
+    isDragging,
+    hasDragged,
+    zoomIn,
+    zoomOut,
+    zoomFit,
+    zoomCover,
+    onMouseDown,
+    onMouseMove,
+    onMouseUp,
+  } = useBoardNavigation();
 
-  const setZoom = (z: number) => {
-    const el = wrapRef.current?.parentElement;
-    if (el && el.scrollWidth > 0 && el.scrollHeight > 0) {
-      pendingCenter.current = {
-        fx: (el.scrollLeft + el.clientWidth / 2) / el.scrollWidth,
-        fy: (el.scrollTop + el.clientHeight / 2) / el.scrollHeight,
-      };
-    }
-    setZoomRaw(z);
-    try {
-      localStorage.setItem('advciv-board-zoom', String(z));
-    } catch {
-      /* ignore */
-    }
+  const handleToggleStyle = () => {
+    const next: BoardStyle = style === 'atlas' ? 'classic' : 'atlas';
+    setStyle(next);
+    setStoredBoardStyle(next);
   };
 
-  useLayoutEffect(() => {
-    const p = pendingCenter.current;
-    pendingCenter.current = null;
-    const el = wrapRef.current?.parentElement;
-    if (p && el) el.scrollTo({ left: p.fx * el.scrollWidth - el.clientWidth / 2, top: p.fy * el.scrollHeight - el.clientHeight / 2 });
-  }, [zoom]);
-
-  const onMouseDown = (e: React.MouseEvent) => {
-    if (e.button !== 0) return;
-    const el = wrapRef.current?.parentElement;
-    if (!el) return;
-    isDragging.current = true;
-    hasDragged.current = false;
-    dragStart.current = { x: e.clientX, y: e.clientY, sl: el.scrollLeft, st: el.scrollTop };
-  };
-
-  const onMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging.current) return;
-    const dx = e.clientX - dragStart.current.x;
-    const dy = e.clientY - dragStart.current.y;
-    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasDragged.current = true;
-    const el = wrapRef.current?.parentElement;
-    if (el) { el.scrollLeft = dragStart.current.sl - dx; el.scrollTop = dragStart.current.st - dy; }
-  };
-
-  const onMouseUp = () => { isDragging.current = false; };
-
-  const zi = ZOOM_LEVELS.indexOf(zoom);
   const outSet = outOfPlay(state);
+  const theme = style === 'atlas' ? ATLAS_THEME : CLASSIC_THEME;
 
   return (
     <div
@@ -104,21 +64,35 @@ export function Board({ state, selected, onSelect, highlight, zoomTo, origin, mo
       onMouseMove={onMouseMove}
       onMouseUp={onMouseUp}
       onMouseLeave={onMouseUp}
-      style={{ position: 'relative', width: zoom === 1 ? BOARD_VIEWBOX.w : `${zoom * 100}%`, maxWidth: zoom === 1 ? '100%' : undefined, margin: 'auto', cursor: isDragging.current ? 'grabbing' : 'default' }}
+      style={{
+        position: 'relative',
+        flexShrink: 0,
+        width: `${boardWidth}px`,
+        height: `${boardHeight}px`,
+        minHeight: zoom < 1.05 ? undefined : '100%',
+        margin: 'auto',
+        cursor: isDragging ? 'grabbing' : 'default',
+        userSelect: 'none',
+      }}
     >
-      <div style={{ position: 'sticky', top: 10, left: 10, zIndex: 25, height: 0, width: 0, overflow: 'visible' }}>
-        <div style={{ display: 'flex', gap: 5, width: 'max-content' }}>
-          <button onClick={() => setZoom(ZOOM_LEVELS[zi - 1] ?? 1)} disabled={zi <= 0} title="Zoom arrière" style={{ ...MAP_BTN, minWidth: 28, fontWeight: 700, opacity: zi <= 0 ? 0.5 : 1 }}>−</button>
-          <button onClick={() => setZoom(1)} title="Réinitialiser le zoom" style={MAP_BTN}>🔍 {Math.round(zoom * 100)}%</button>
-          <button onClick={() => setZoom(ZOOM_LEVELS[zi + 1] ?? ZOOM_LEVELS[ZOOM_LEVELS.length - 1]!)} disabled={zi >= ZOOM_LEVELS.length - 1} title="Zoom avant" style={{ ...MAP_BTN, minWidth: 28, fontWeight: 700, opacity: zi >= ZOOM_LEVELS.length - 1 ? 0.5 : 1 }}>+</button>
-          <button onClick={() => setShowTerrain((s) => !s)} title="Afficher/masquer les terrains : 🌋 volcan · 🏛 cité · 🌊 plaine inondable" style={{ ...MAP_BTN, background: showTerrain ? '#3a5a2a' : MAP_BTN.background }}>
-            🌋 Terrain: {showTerrain ? 'on' : 'off'}
-          </button>
-        </div>
-      </div>
+      <BoardControls
+        zoom={zoom}
+        style={style}
+        showTerrain={showTerrain}
+        onZoomIn={zoomIn}
+        onZoomOut={zoomOut}
+        onZoomFit={zoomFit}
+        onZoomCover={zoomCover}
+        onToggleStyle={handleToggleStyle}
+        onToggleTerrain={() => setShowTerrain((s) => !s)}
+      />
 
-      <svg viewBox={`0 0 ${BOARD_VIEWBOX.w} ${BOARD_VIEWBOX.h}`} style={{ width: '100%', display: 'block', background: '#0d3a4a' }}>
-        <BoardBackground state={state} art={art} outSet={outSet} />
+      <svg
+        viewBox={`0 0 ${BOARD_VIEWBOX.w} ${BOARD_VIEWBOX.h}`}
+        style={{ width: '100%', height: '100%', display: 'block', background: theme.sea }}
+      >
+        <BoardBackground state={state} art={art} outSet={outSet} style={style} />
+        {style === 'atlas' && <BoardLabels zoom={zoom} outSet={outSet} />}
 
         {Object.keys(anchors).filter((aid) => !outSet.has(aid)).map((aid) => {
           const an = anchors[aid]!;
@@ -126,13 +100,18 @@ export function Board({ state, selected, onSelect, highlight, zoomTo, origin, mo
           const a = state.areas[aid] ?? { tokens: {} as Record<string, number> };
           const meta = areaById.get(aid);
           const owners = Object.entries(a.tokens).filter(([, n]) => n > 0);
-          const showCap = !!meta && !meta.isWater && (owners.length > 0 || !!a.city) && meta.sustains > 0;
+          const showCap = !!meta && !meta.isWater && meta.sustains > 0 && !a.city;
+          const showCitySite = !!meta && meta.isCitySite && !a.city;
           const isHi = highlight.has(aid);
           const isSel = selected === aid;
           const isPeek = peek.has(aid);
           const isOrigin = origin === aid;
           const isMoved = !!moved?.has(aid);
           const ships = Object.entries(a.ships ?? {}).filter(([, n]) => n > 0);
+          const isHov = hovered === aid;
+
+          const fillTactical = isSel ? theme.selection : isOrigin ? theme.origin : isHi ? theme.highlight : 'transparent';
+          const strokeTactical = isOrigin ? theme.originStroke : isSel ? theme.selectionStroke : isHi ? theme.highlightStroke : undefined;
 
           return (
             <g
@@ -141,20 +120,53 @@ export function Board({ state, selected, onSelect, highlight, zoomTo, origin, mo
               onClick={() => { if (!hasDragged.current) onSelect(isSel ? null : aid); }}
               onMouseEnter={() => setHovered(aid)}
               onMouseLeave={() => setHovered((h) => (h === aid ? null : h))}
-              style={{ cursor: isHi || isSel ? 'pointer' : 'default' }}
+              style={{ cursor: isHi || isSel || isOrigin || owners.length > 0 ? 'pointer' : 'default' }}
             >
-              {sh ? <polygon points={sh.points} fill={isSel ? '#ffffff33' : isOrigin ? '#ffd23f33' : isHi ? 'rgba(255, 210, 63, 0.28)' : 'transparent'} pointerEvents="all" /> : <circle cx={an.x} cy={an.y} r={an.r + 6} fill="transparent" />}
-              {(isHi || isSel || isOrigin) && sh && <polygon points={sh.points} fill="none" stroke={isOrigin ? '#ffd23f' : isSel ? '#ffffff' : '#ffd23f'} strokeWidth={isOrigin ? 4 : isHi ? 3.5 : 3} strokeDasharray={isHi && !isSel ? '8 4' : undefined} strokeLinejoin="round" pointerEvents="none" />}
-              {isMoved && sh && <polygon points={sh.points} fill="none" stroke="#ffd23f" strokeWidth={2.5} strokeDasharray="8 5" strokeLinejoin="round" pointerEvents="none" />}
-              {isPeek && (sh ? <polygon points={sh.points} fill="#ff5cf133" stroke="#ff5cf1" strokeWidth={5} strokeLinejoin="round" pointerEvents="none" /> : <circle cx={an.x} cy={an.y} r={an.r + 9} fill="none" stroke="#ff5cf1" strokeWidth={5} pointerEvents="none" />)}
-              {a.city && <CityMarker cx={an.x} cy={an.y} r={an.r} owner={a.city} />}
-              {owners.map(([owner, n], i) => <TokenMarker key={owner} cx={an.x} cy={an.y} r={an.r} owner={owner} count={n} offsetIndex={i} />)}
-              {ships.map(([owner], i) => <ShipMarker key={'s' + owner} cx={an.x} cy={an.y} r={an.r} owner={owner} offsetIndex={i} />)}
-              {showCap && <CapacityBadge cx={an.x} cy={an.y} r={an.r} limit={meta!.sustains} />}
-              {showTerrain && meta && (() => {
-                const glyphs = [meta.isVolcanoSite && '🌋', meta.isCitySite && '🏛', meta.isFloodplain && '🌊'].filter(Boolean).join('');
-                return glyphs ? <TerrainGlyphs cx={an.x} cy={an.y} r={an.r} glyphs={glyphs} /> : null;
-              })()}
+              {sh ? (
+                <polygon
+                  points={sh.points}
+                  fill={fillTactical}
+                  stroke={isHov && style === 'atlas' ? 'rgba(255, 230, 140, 0.5)' : undefined}
+                  strokeWidth={isHov && style === 'atlas' ? 2 : undefined}
+                  pointerEvents="all"
+                />
+              ) : (
+                <circle cx={an.x} cy={an.y} r={an.r + 6} fill="transparent" />
+              )}
+
+              {(isHi || isSel || isOrigin) && sh && strokeTactical && (
+                <polygon
+                  points={sh.points}
+                  fill="none"
+                  stroke={strokeTactical}
+                  strokeWidth={isOrigin ? 4 : isHi ? 3.5 : 3}
+                  strokeDasharray={isHi && !isSel ? '8 4' : undefined}
+                  strokeLinejoin="round"
+                  pointerEvents="none"
+                />
+              )}
+
+              {isMoved && sh && (
+                <polygon points={sh.points} fill="none" stroke="#ffd23f" strokeWidth={2.5} strokeDasharray="8 5" strokeLinejoin="round" pointerEvents="none" />
+              )}
+
+              {isPeek && (sh ? (
+                <polygon points={sh.points} fill="#ff5cf133" stroke="#ff5cf1" strokeWidth={5} strokeLinejoin="round" pointerEvents="none" />
+              ) : (
+                <circle cx={an.x} cy={an.y} r={an.r + 9} fill="none" stroke="#ff5cf1" strokeWidth={5} pointerEvents="none" />
+              ))}
+
+              {showCitySite && <CitySiteEmblem cx={an.x} cy={an.y} hasPieces={owners.length > 0} style={style} />}
+              {a.city && <CityMarker cx={an.x} cy={an.y} r={an.r} owner={a.city} style={style} />}
+              {owners.map(([owner, n], i) => (
+                <TokenMarker key={owner} cx={an.x} cy={an.y} r={an.r} owner={owner} count={n} offsetIndex={i} style={style} />
+              ))}
+              {ships.map(([owner], i) => (
+                <ShipMarker key={'s' + owner} cx={an.x} cy={an.y} r={an.r} owner={owner} offsetIndex={i} style={style} />
+              ))}
+              {showCap && <CapacityBadge cx={an.x} cy={an.y} r={an.r} limit={meta!.sustains} hasPieces={owners.length > 0 || showCitySite} style={style} />}
+              {meta?.isVolcanoSite && <VolcanoEmblem cx={an.x + an.r * 0.72} cy={an.y + an.r * 0.52} style={style} />}
+              {meta?.isFloodplain && <FloodplainEmblem cx={an.x} cy={an.y + an.r * 0.78} style={style} />}
             </g>
           );
         })}

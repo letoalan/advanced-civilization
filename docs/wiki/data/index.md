@@ -16,6 +16,7 @@
   - Graphe naval : `shipNeighbors`, `TWO_COASTLINE_AREAS`.
   - Textes d'aide : `ADVANCE_EFFECTS`, `CALAMITY_DESC`.
   - Fonction de contrôle : `validateData()`.
+- **Sous-modules** : [`cartography.md`](file:///c:/Users/alano/OneDrive/Documents/GitHub/advanced-civilization/docs/wiki/data/cartography.md) (modèle cartographique intermédiaire BoardGeometry, validation et export) et [`cartography-modernization.md`](file:///c:/Users/alano/OneDrive/Documents/GitHub/advanced-civilization/docs/wiki/cartography-modernization.md) (refonte visuelle Atlas Antique).
 - **Modules dépendants** : L'ensemble du moteur (`src/engine/*`), l'IA heuristique (`src/ai/*`) et l'interface (`src/ui/*`).
 
 ## 3. Spécification de l'API Publique

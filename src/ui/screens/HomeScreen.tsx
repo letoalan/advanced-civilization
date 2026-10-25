@@ -51,7 +51,7 @@ export function HomeScreen({ onNewGame, onResumeGame, onImportSave }: HomeScreen
         overflow: 'hidden',
       }}
     >
-      {/* Fond vidéo YouTube avec calque transparent de contraste */}
+      {/* Fond vidéo local avec calque transparent de contraste */}
       <VideoBackground opacity={0.75} />
 
       {/* Contenu interactif (au-dessus du calque) */}

@@ -1,18 +1,17 @@
-const YOUTUBE_EMBED_URL =
-  'https://www.youtube-nocookie.com/embed/7s8Kn6BDPUc?autoplay=1&mute=1&controls=0&loop=1&playlist=7s8Kn6BDPUc&playsinline=1&rel=0&showinfo=0&iv_load_policy=3&disablekb=1&modestbranding=1&cc_load_policy=0';
+const LOCAL_VIDEO_URL = '/medias/video/Merveilles%20du%20Monde%20Antique.mp4';
 
 interface VideoBackgroundProps {
   opacity?: number;
 }
 
 /**
- * Fond vidéo immersif YouTube avec boucle automatique, silencieux,
- * et calque transparent de contraste pour préserver la lisibilité de l'interface.
+ * Fond vidéo immersif local (Merveilles du Monde Antique) avec boucle automatique,
+ * silencieux, et calque transparent de contraste pour préserver la lisibilité de l'interface.
  */
 export function VideoBackground({ opacity = 0.72 }: VideoBackgroundProps) {
   return (
     <>
-      {/* 1. IFrame Vidéo 16:9 couvrant l'écran */}
+      {/* 1. Lecteur vidéo HTML5 local couvrant l'ensemble de l'écran */}
       <div
         style={{
           position: 'absolute',
@@ -22,25 +21,26 @@ export function VideoBackground({ opacity = 0.72 }: VideoBackgroundProps) {
           pointerEvents: 'none',
         }}
       >
-        <iframe
-          src={YOUTUBE_EMBED_URL}
-          title="Fond vidéo Advanced Civilization"
+        <video
+          src={LOCAL_VIDEO_URL}
+          autoPlay
+          muted
+          loop
+          playsInline
+          disablePictureInPicture
+          controls={false}
           style={{
             position: 'absolute',
             top: '50%',
             left: '50%',
-            width: '100vw',
-            height: '56.25vw',
-            minHeight: '100vh',
-            minWidth: '177.78vh',
-            transform: 'translate(-50%, -50%) scale(1.3)',
-            border: 'none',
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            transform: 'translate(-50%, -50%)',
             pointerEvents: 'none',
             opacity,
             filter: 'brightness(0.85) contrast(1.1)',
           }}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          tabIndex={-1}
         />
       </div>
 

@@ -133,24 +133,28 @@ export function CardFrame({
         )}
       </div>
 
-      {/* Cartouche d'informations inférieures */}
-      <div
-        style={{
-          background: 'rgba(16, 12, 8, 0.92)',
-          borderTop: '1px solid #5a3c1c',
-          padding: '4px 6px',
-          minHeight: 38,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          zIndex: 2,
-        }}
-      >
-        <div style={{ fontSize: 11, fontWeight: 700, color: '#e8dcba', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {title}
+      {/* Cartouche d'informations inférieures (repli ou informations contextuelles comme le coût) */}
+      {(imageError || children) && (
+        <div
+          style={{
+            background: 'rgba(16, 12, 8, 0.94)',
+            borderTop: '1px solid #5a3c1c',
+            padding: '4px 6px',
+            minHeight: imageError ? 36 : 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            zIndex: 2,
+          }}
+        >
+          {imageError && (
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#e8dcba', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {title}
+            </div>
+          )}
+          {children}
         </div>
-        {children}
-      </div>
+      )}
     </div>
   );
 }
