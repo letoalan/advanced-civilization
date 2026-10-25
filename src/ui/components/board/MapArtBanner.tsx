@@ -35,22 +35,23 @@ export function MapArtBanner({ mapArt }: MapArtBannerProps) {
         bottom: 10,
         zIndex: 25,
         cursor: 'pointer',
-        background: accent ? '#ffd23f' : 'rgba(26,20,16,0.92)',
-        color: accent ? '#1a1410' : '#ffd23f',
-        border: '1px solid #ffd23f',
+        background: accent ? 'rgba(36, 26, 17, 0.9)' : 'rgba(20, 15, 10, 0.85)',
+        color: '#ffd23f',
+        border: '1px solid #6b4317',
         borderRadius: 6,
-        padding: '5px 11px',
-        fontSize: 12,
-        fontWeight: 700,
-        boxShadow: '0 1px 6px rgba(0,0,0,0.5)',
+        padding: '4px 9px',
+        fontSize: 11,
+        fontWeight: 600,
+        backdropFilter: 'blur(4px)',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
       }}
     >
-      {label}
+      🎨 {label}
     </button>
   );
 
-  if (mapArt.status === 'ready') return pill('Plateau : cartes originales ✓ · utiliser le tracé', mapArt.clearArt);
-  if (collapsed && mapArt.status !== 'importing' && mapArt.status !== 'error') return pill('Charger les cartes originales…', expand, true);
+  if (mapArt.status === 'ready') return pill('Cartes originales actives ✓ (retirer)', mapArt.clearArt);
+  if (collapsed && mapArt.status !== 'importing' && mapArt.status !== 'error') return pill('Cartes VASSAL…', expand, false);
 
   return (
     <div

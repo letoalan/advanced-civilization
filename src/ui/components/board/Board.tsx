@@ -47,6 +47,9 @@ export function Board({ state, selected, onSelect, highlight, zoomTo, origin, mo
 
   const wrapRef = useRef<HTMLDivElement>(null);
   const pendingCenter = useRef<{ fx: number; fy: number } | null>(null);
+  const isDragging = useRef(false);
+  const dragStart = useRef({ x: 0, y: 0, sl: 0, st: 0 });
+  const hasDragged = useRef(false);
 
   const setZoom = (z: number) => {
     const el = wrapRef.current?.parentElement;
@@ -71,16 +74,43 @@ export function Board({ state, selected, onSelect, highlight, zoomTo, origin, mo
     if (p && el) el.scrollTo({ left: p.fx * el.scrollWidth - el.clientWidth / 2, top: p.fy * el.scrollHeight - el.clientHeight / 2 });
   }, [zoom]);
 
+  const onMouseDown = (e: React.MouseEvent) => {
+    if (e.button !== 0) return;
+    const el = wrapRef.current?.parentElement;
+    if (!el) return;
+    isDragging.current = true;
+    hasDragged.current = false;
+    dragStart.current = { x: e.clientX, y: e.clientY, sl: el.scrollLeft, st: el.scrollTop };
+  };
+
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging.current) return;
+    const dx = e.clientX - dragStart.current.x;
+    const dy = e.clientY - dragStart.current.y;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasDragged.current = true;
+    const el = wrapRef.current?.parentElement;
+    if (el) { el.scrollLeft = dragStart.current.sl - dx; el.scrollTop = dragStart.current.st - dy; }
+  };
+
+  const onMouseUp = () => { isDragging.current = false; };
+
   const zi = ZOOM_LEVELS.indexOf(zoom);
   const outSet = outOfPlay(state);
 
   return (
-    <div ref={wrapRef} style={{ position: 'relative', width: zoom === 1 ? BOARD_VIEWBOX.w : `${zoom * 100}%`, maxWidth: zoom === 1 ? '100%' : undefined, margin: '0 auto' }}>
+    <div
+      ref={wrapRef}
+      onMouseDown={onMouseDown}
+      onMouseMove={onMouseMove}
+      onMouseUp={onMouseUp}
+      onMouseLeave={onMouseUp}
+      style={{ position: 'relative', width: zoom === 1 ? BOARD_VIEWBOX.w : `${zoom * 100}%`, maxWidth: zoom === 1 ? '100%' : undefined, margin: 'auto', cursor: isDragging.current ? 'grabbing' : 'default' }}
+    >
       <div style={{ position: 'sticky', top: 10, left: 10, zIndex: 25, height: 0, width: 0, overflow: 'visible' }}>
         <div style={{ display: 'flex', gap: 5, width: 'max-content' }}>
-          <button onClick={() => setZoom(ZOOM_LEVELS[zi - 1] ?? 1)} disabled={zi <= 0} title="Zoom out" style={{ ...MAP_BTN, minWidth: 28, fontWeight: 700, opacity: zi <= 0 ? 0.5 : 1 }}>−</button>
+          <button onClick={() => setZoom(ZOOM_LEVELS[zi - 1] ?? 1)} disabled={zi <= 0} title="Zoom arrière" style={{ ...MAP_BTN, minWidth: 28, fontWeight: 700, opacity: zi <= 0 ? 0.5 : 1 }}>−</button>
           <button onClick={() => setZoom(1)} title="Réinitialiser le zoom" style={MAP_BTN}>🔍 {Math.round(zoom * 100)}%</button>
-          <button onClick={() => setZoom(ZOOM_LEVELS[zi + 1] ?? ZOOM_LEVELS[ZOOM_LEVELS.length - 1]!)} disabled={zi >= ZOOM_LEVELS.length - 1} title="Zoom in" style={{ ...MAP_BTN, minWidth: 28, fontWeight: 700, opacity: zi >= ZOOM_LEVELS.length - 1 ? 0.5 : 1 }}>+</button>
+          <button onClick={() => setZoom(ZOOM_LEVELS[zi + 1] ?? ZOOM_LEVELS[ZOOM_LEVELS.length - 1]!)} disabled={zi >= ZOOM_LEVELS.length - 1} title="Zoom avant" style={{ ...MAP_BTN, minWidth: 28, fontWeight: 700, opacity: zi >= ZOOM_LEVELS.length - 1 ? 0.5 : 1 }}>+</button>
           <button onClick={() => setShowTerrain((s) => !s)} title="Afficher/masquer les terrains : 🌋 volcan · 🏛 cité · 🌊 plaine inondable" style={{ ...MAP_BTN, background: showTerrain ? '#3a5a2a' : MAP_BTN.background }}>
             🌋 Terrain: {showTerrain ? 'on' : 'off'}
           </button>
@@ -105,9 +135,16 @@ export function Board({ state, selected, onSelect, highlight, zoomTo, origin, mo
           const ships = Object.entries(a.ships ?? {}).filter(([, n]) => n > 0);
 
           return (
-            <g key={aid} data-area={aid} onClick={() => onSelect(isSel ? null : aid)} onMouseEnter={() => setHovered(aid)} onMouseLeave={() => setHovered((h) => (h === aid ? null : h))} style={{ cursor: 'pointer' }}>
-              {sh ? <polygon points={sh.points} fill={isSel ? '#ffffff22' : isOrigin ? '#ffd23f22' : 'transparent'} pointerEvents="all" /> : <circle cx={an.x} cy={an.y} r={an.r + 6} fill="transparent" />}
-              {(isHi || isSel || isOrigin) && sh && <polygon points={sh.points} fill="none" stroke={isOrigin ? '#ffd23f' : isSel ? '#fff' : '#5cf'} strokeWidth={isOrigin ? 4 : 3} strokeLinejoin="round" pointerEvents="none" />}
+            <g
+              key={aid}
+              data-area={aid}
+              onClick={() => { if (!hasDragged.current) onSelect(isSel ? null : aid); }}
+              onMouseEnter={() => setHovered(aid)}
+              onMouseLeave={() => setHovered((h) => (h === aid ? null : h))}
+              style={{ cursor: isHi || isSel ? 'pointer' : 'default' }}
+            >
+              {sh ? <polygon points={sh.points} fill={isSel ? '#ffffff33' : isOrigin ? '#ffd23f33' : isHi ? 'rgba(255, 210, 63, 0.28)' : 'transparent'} pointerEvents="all" /> : <circle cx={an.x} cy={an.y} r={an.r + 6} fill="transparent" />}
+              {(isHi || isSel || isOrigin) && sh && <polygon points={sh.points} fill="none" stroke={isOrigin ? '#ffd23f' : isSel ? '#ffffff' : '#ffd23f'} strokeWidth={isOrigin ? 4 : isHi ? 3.5 : 3} strokeDasharray={isHi && !isSel ? '8 4' : undefined} strokeLinejoin="round" pointerEvents="none" />}
               {isMoved && sh && <polygon points={sh.points} fill="none" stroke="#ffd23f" strokeWidth={2.5} strokeDasharray="8 5" strokeLinejoin="round" pointerEvents="none" />}
               {isPeek && (sh ? <polygon points={sh.points} fill="#ff5cf133" stroke="#ff5cf1" strokeWidth={5} strokeLinejoin="round" pointerEvents="none" /> : <circle cx={an.x} cy={an.y} r={an.r + 9} fill="none" stroke="#ff5cf1" strokeWidth={5} pointerEvents="none" />)}
               {a.city && <CityMarker cx={an.x} cy={an.y} r={an.r} owner={a.city} />}

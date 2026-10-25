@@ -37,21 +37,31 @@ export function StartControls({ state, legal, selectedArea, actor, onApply }: St
           ))}
         </span>
       )}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-        {starts.map((a) => {
-          const area = areaById.get(a.area);
-          return (
-            <button
-              key={a.area}
-              className={`civ-btn ${selectedArea === a.area ? 'on' : ''}`}
-              {...peek(a.area)}
-              onClick={() => onApply(a)}
-              title={`Capacité limite ${area?.sustains ?? '?'}${area?.isCitySite ? ' · site de cité' : ''}`}
-            >
-              Partir de {area?.name ?? a.area} · max {area?.sustains ?? '?'}
-            </button>
-          );
-        })}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
+        <div style={{ fontWeight: 700, fontSize: 12, color: '#ffd23f' }}>
+          Zones de départ disponibles ({starts.length}) :
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {starts.map((a) => {
+            const area = areaById.get(a.area);
+            const isSel = selectedArea === a.area;
+            return (
+              <button
+                key={a.area}
+                className={`civ-btn ${isSel ? 'on' : ''}`}
+                style={{ padding: '8px 10px', fontSize: 12, textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                {...peek(a.area)}
+                onClick={() => onApply(a)}
+                title={`Capacité limite ${area?.sustains ?? '?'}${area?.isCitySite ? ' · site de cité' : ''}`}
+              >
+                <span>🏁 <b>{area?.name ?? a.area}</b></span>
+                <span style={{ fontSize: 10, opacity: 0.85 }}>
+                  Capacité {area?.sustains ?? '?'}{area?.isCitySite ? ' · 🏛 Cité' : ''}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

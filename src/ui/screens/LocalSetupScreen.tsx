@@ -1,9 +1,15 @@
 import { useState, useMemo } from 'react';
-import { civilizations } from '../../data/index.js';
-import { boardPresets, availableNations, unavailableReason } from '../../engine/boards.js';
+import { boardPresets, availableNations } from '../../engine/boards.js';
 import { validateSessionConfig } from '../../local/session.js';
 import type { LocalSessionConfig, LocalSeat, ControllerType } from '../../local/types.js';
 import type { PlayerId } from '../../engine/types.js';
+import {
+  SeatCard,
+  BoardPresetPicker,
+  GameOptionsPicker,
+  reconcileSeats,
+  swapOrUpdateSeatCiv,
+} from './setup/index.js';
 
 interface LocalSetupScreenProps {
   onLaunch: (config: LocalSessionConfig) => void;
@@ -23,34 +29,35 @@ export function LocalSetupScreen({ onLaunch, onBack }: LocalSetupScreenProps) {
   const allowedCivs = useMemo(() => new Set(availableNations(activePreset.config)), [activePreset]);
 
   const [seats, setSeats] = useState<LocalSeat[]>(() =>
-    DEFAULT_CIVS.slice(0, 4).map((cid, i) => ({
-      civilizationId: cid,
-      controller: (i === 0 ? 'human' : 'heuristic-ai') as ControllerType,
-      displayName: i === 0 ? 'Joueur 1' : undefined,
-    }))
+    reconcileSeats(
+      DEFAULT_CIVS.slice(0, 4).map((cid, i) => ({
+        civilizationId: cid,
+        controller: (i === 0 ? 'human' : 'heuristic-ai') as ControllerType,
+        displayName: i === 0 ? 'Joueur 1' : undefined,
+      })),
+      4,
+      boardPresets(4)[0]!.config
+    )
   );
 
   const handlePlayerCountChange = (count: number) => {
     setNumPlayers(count);
     const newPresets = boardPresets(count);
-    const newAllowed = new Set(availableNations(newPresets[0]!.config));
-    const validChoices = [...civilizations].map((c) => c.id).filter((c) => newAllowed.has(c));
-
-    const newSeats: LocalSeat[] = [];
-    for (let i = 0; i < count; i++) {
-      const existing = seats[i];
-      const civ = (existing && newAllowed.has(existing.civilizationId))
-        ? existing.civilizationId
-        : (validChoices[i] ?? validChoices[0]!);
-
-      newSeats.push({
-        civilizationId: civ,
-        controller: existing?.controller ?? (i === 0 ? 'human' : 'heuristic-ai'),
-        displayName: existing?.displayName ?? (i === 0 ? 'Joueur 1' : undefined),
-      });
+    const matchedPreset = newPresets.find((b) => b.id === presetId) ?? newPresets[0]!;
+    if (!newPresets.some((b) => b.id === presetId)) {
+      setPresetId(null);
     }
-    setSeats(newSeats);
-    setPresetId(null);
+    setSeats((prev) => reconcileSeats(prev, count, matchedPreset.config));
+  };
+
+  const handlePresetSelect = (id: string) => {
+    setPresetId(id);
+    const chosenPreset = presets.find((b) => b.id === id) ?? presets[0]!;
+    setSeats((prev) => reconcileSeats(prev, numPlayers, chosenPreset.config));
+  };
+
+  const handleCivChange = (idx: number, newCivId: string) => {
+    setSeats((prev) => swapOrUpdateSeatCiv(prev, idx, newCivId));
   };
 
   const updateSeat = (idx: number, patch: Partial<LocalSeat>) => {
@@ -66,120 +73,119 @@ export function LocalSetupScreen({ onLaunch, onBack }: LocalSetupScreenProps) {
 
   const validation = validateSessionConfig(currentConfig);
 
+  const gridColumns = numPlayers === 4 || numPlayers === 2
+    ? 'repeat(2, minmax(0, 1fr))'
+    : 'repeat(auto-fit, minmax(280px, 1fr))';
+
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 14, color: '#f0e6d2', padding: 20, overflowY: 'auto', background: '#14100c' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #5a3c1c', paddingBottom: 8 }}>
-        <h2 style={{ margin: 0, color: '#ffd23f', fontSize: 20 }}>Configuration de la Partie Locale</h2>
-        <button className="civ-btn" onClick={onBack}>← Retour</button>
-      </div>
-
-      {/* Nombre de participants */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <span style={{ fontWeight: 700, fontSize: 13, color: '#c8ad7f' }}>Nombre de joueurs :</span>
-        <div style={{ display: 'flex', gap: 6 }}>
-          {[2, 3, 4, 5, 6, 7, 8].map((n) => (
-            <button key={n} className={`civ-btn ${numPlayers === n ? 'on' : ''}`} onClick={() => handlePlayerCountChange(n)}>
-              {n}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Choix du plateau */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <span style={{ fontWeight: 700, fontSize: 13, color: '#c8ad7f' }}>Plateau de jeu (§16) :</span>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-          {presets.map((b) => (
-            <button key={b.id} className={`civ-btn ${activePreset.id === b.id ? 'on' : ''}`} onClick={() => setPresetId(b.id)}>
-              {b.label} <span style={{ color: '#baa' }}>({b.tokensPerPlayer} pions)</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Configuration des sièges */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
-        <span style={{ fontWeight: 700, fontSize: 13, color: '#c8ad7f' }}>Attribution des civilisations et contrôleurs :</span>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 8 }}>
-          {seats.map((seat, idx) => {
-            const civInfo = civilizations.find((c) => c.id === seat.civilizationId);
-            return (
-              <div key={idx} style={{ background: '#1f1812', border: `2px solid ${civInfo?.color ?? '#555'}`, borderRadius: 6, padding: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontWeight: 800, fontSize: 13, color: civInfo?.color }}>Siège {idx + 1} : {civInfo?.name}</span>
-                  <select
-                    value={seat.controller}
-                    onChange={(e) => updateSeat(idx, { controller: e.target.value as ControllerType })}
-                    style={{ background: '#2c2217', color: '#eee', border: '1px solid #7a5020', borderRadius: 4, padding: '2px 6px', fontSize: 12 }}
-                  >
-                    <option value="human">Humain</option>
-                    <option value="heuristic-ai">IA Heuristique</option>
-                  </select>
-                </div>
-
-                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                  <select
-                    value={seat.civilizationId}
-                    onChange={(e) => updateSeat(idx, { civilizationId: e.target.value })}
-                    style={{ flex: 1, background: '#2c2217', color: '#eee', border: '1px solid #7a5020', borderRadius: 4, padding: '3px 6px', fontSize: 12 }}
-                  >
-                    {civilizations.map((c) => (
-                      <option key={c.id} value={c.id} disabled={!allowedCivs.has(c.id) && seat.civilizationId !== c.id}>
-                        {c.name} {!allowedCivs.has(c.id) ? `(${unavailableReason(activePreset.config, c.id) || 'non dispo'})` : ''}
-                      </option>
-                    ))}
-                  </select>
-                  {seat.controller === 'human' && (
-                    <input
-                      type="text"
-                      placeholder="Nom du joueur"
-                      value={seat.displayName ?? ''}
-                      onChange={(e) => updateSeat(idx, { displayName: e.target.value })}
-                      style={{ width: 110, background: '#2c2217', color: '#eee', border: '1px solid #7a5020', borderRadius: 4, padding: '3px 6px', fontSize: 12 }}
-                    />
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Options de confidentialité et cadence */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 4, background: '#1c1610', padding: 8, borderRadius: 6, border: '1px solid #4a3015' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 12, fontWeight: 700 }}>Confidentialité :</span>
-          <button className={`civ-btn ${privacyMode === 'handoff' ? 'on' : ''}`} onClick={() => setPrivacyMode('handoff')}>
-            Passage de main secret
-          </button>
-          <button className={`civ-btn ${privacyMode === 'open-table' ? 'on' : ''}`} onClick={() => setPrivacyMode('open-table')}>
-            Table ouverte
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#0e0b08', color: '#f0e6d2', overflowY: 'auto' }}>
+      <div style={{ width: '100%', maxWidth: 1040, margin: '0 auto', boxSizing: 'border-box', padding: '16px 20px 32px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        
+        {/* En-tête */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #5a3c1c', paddingBottom: 10 }}>
+          <div>
+            <h2 style={{ margin: 0, color: '#ffd23f', fontSize: 22, letterSpacing: 0.5 }}>
+              Configuration de la Partie Locale
+            </h2>
+            <div style={{ fontSize: 12, color: '#a89882', marginTop: 2 }}>
+              Paramétrez les participants, le découpage géographique et les règles d'Avalon Hill (1991)
+            </div>
+          </div>
+          <button className="civ-btn" onClick={onBack} style={{ padding: '7px 14px' }}>
+            ← Retour au menu
           </button>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 12, fontWeight: 700 }}>Cadence IA :</span>
-          <button className={`civ-btn ${aiPace === 'readable' ? 'on' : ''}`} onClick={() => setAiPace('readable')}>
-            Lisible (temporisé)
-          </button>
-          <button className={`civ-btn ${aiPace === 'instant' ? 'on' : ''}`} onClick={() => setAiPace('instant')}>
-            Instantané
+
+        {/* Nombre de participants */}
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 12, background: '#18120d', padding: '10px 14px', borderRadius: 8, border: '1px solid #4a341e' }}>
+          <span style={{ fontWeight: 800, fontSize: 13, color: '#ffd23f', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            Nombre de joueurs :
+          </span>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {[2, 3, 4, 5, 6, 7, 8].map((n) => (
+              <button
+                key={n}
+                className={`civ-btn ${numPlayers === n ? 'on' : ''}`}
+                style={{ width: 36, height: 32, padding: 0, fontSize: 13, fontWeight: 800 }}
+                onClick={() => handlePlayerCountChange(n)}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+          <span style={{ fontSize: 11, color: '#8e8070', marginLeft: 'auto' }}>
+            Partie à {numPlayers} civilisations
+          </span>
+        </div>
+
+        {/* Choix du plateau (§16) */}
+        <BoardPresetPicker
+          presets={presets}
+          activePresetId={activePreset.id}
+          onSelect={handlePresetSelect}
+        />
+
+        {/* Attribution des civilisations et contrôleurs */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontWeight: 800, fontSize: 13, color: '#ffd23f', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              Attribution des civilisations et contrôleurs :
+            </span>
+            <span style={{ fontSize: 11, color: '#a89882' }}>
+              Basculez chaque siège en Humain ou IA · Permutation automatique sans doublon
+            </span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: gridColumns, gap: 10 }}>
+            {seats.map((seat, idx) => (
+              <SeatCard
+                key={idx}
+                idx={idx}
+                seat={seat}
+                allSeats={seats}
+                activePreset={activePreset}
+                allowedCivs={allowedCivs}
+                onUpdate={updateSeat}
+                onCivChange={handleCivChange}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Options de confidentialité et cadence */}
+        <GameOptionsPicker
+          privacyMode={privacyMode}
+          aiPace={aiPace}
+          onPrivacyChange={setPrivacyMode}
+          onAiPaceChange={setAiPace}
+        />
+
+        {/* Lancement de la partie */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, marginTop: 8 }}>
+          {!validation.valid && (
+            <div style={{ background: '#4d1919', border: '1px solid #c97', color: '#ffd2d2', padding: '6px 14px', borderRadius: 6, fontSize: 12, fontWeight: 700 }}>
+              ⚠️ {validation.reason}
+            </div>
+          )}
+          <button
+            className="civ-btn"
+            disabled={!validation.valid}
+            style={{
+              fontSize: 16,
+              padding: '12px 32px',
+              fontWeight: 800,
+              background: validation.valid ? 'linear-gradient(180deg, #f5a623 0%, #d47e12 100%)' : '#3a2b1c',
+              borderColor: '#ffd23f',
+              color: validation.valid ? '#1a0e03' : '#777',
+              boxShadow: validation.valid ? '0 4px 15px rgba(245, 166, 35, 0.4)' : 'none',
+              cursor: validation.valid ? 'pointer' : 'not-allowed',
+            }}
+            onClick={() => validation.valid && onLaunch(currentConfig)}
+          >
+            🚀 Commencer la partie
           </button>
         </div>
-      </div>
 
-      {/* Bouton de validation / lancement */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, marginTop: 10 }}>
-        {!validation.valid && (
-          <div style={{ color: '#e06666', fontSize: 12, fontWeight: 700 }}>⚠️ {validation.reason}</div>
-        )}
-        <button
-          className="civ-btn"
-          disabled={!validation.valid}
-          style={{ fontSize: 16, padding: '10px 24px', fontWeight: 800, background: '#e69830' }}
-          onClick={() => validation.valid && onLaunch(currentConfig)}
-        >
-          🚀 Commencer la partie
-        </button>
       </div>
     </div>
   );

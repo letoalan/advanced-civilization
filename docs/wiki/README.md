@@ -54,16 +54,23 @@ Conformément à nos standards d'ingénierie, **chaque fichier source du projet 
   - [LogView.tsx](ui/components/views/LogView.md) : Journal d'événements.
 
 ### 6. Moteur de Règles Modulaire (`src/engine/`)
-- [CivAdapter.ts](engine/core/CivAdapter.md) : Adaptateur de jeu principal `GameAdapter`.
-- [normalization.ts](engine/core/normalization.md) : Machine d'avancement des phases automatiques.
-- [legality.ts](engine/core/legality.md) : Détermination des actions légales selon la phase.
-- **Phases individuelles** :
-  - [taxation.ts](engine/phases/taxation.md), [expansion.ts](engine/phases/expansion.md), [census.ts](engine/phases/census.md)
-  - [ships.ts](engine/phases/ships.md), [movement.ts](engine/phases/movement.md), [combat.ts](engine/phases/combat.md)
-  - [cities.ts](engine/phases/cities.md), [surplus.ts](engine/phases/surplus.md), [trade.ts](engine/phases/trade.md)
-  - [calamity.ts](engine/phases/calamity.md), [advances.ts](engine/phases/advances.md), [ast.ts](engine/phases/ast.md)
+- [Vue d'ensemble du Moteur](engine/index.md) : Façade et architecture globale du moteur.
+- [Primitives du Plateau](engine/primitives.md) : Mutations de pions, cités et prédicats spatiaux.
+- [Journalisation Typée](engine/logging.md) : Format v2 du journal de jeu et extraction des règles.
+- [Utilitaires de Commerce](engine/tradeHelpers.md) : Lots d'échange et manipulation de cartes.
+- **[Adaptateur de Jeu](engine/adapter/index.md)** :
+  - [CivAdapter.ts](engine/adapter/CivAdapter.md), [currentActor.ts](engine/adapter/currentActor.md), [legalActions.ts](engine/adapter/legalActions.md), [viewFor.ts](engine/adapter/viewFor.md), [applyAction.ts](engine/adapter/applyAction.md), [applyCalamityAction.ts](engine/adapter/applyCalamityAction.md).
+- **[Sous-système des Phases](engine/phases/index.md)** :
+  - [taxation.ts](engine/phases/taxation.md), [expansion.ts](engine/phases/expansion.md), [census.ts](engine/phases/census.md), [ships.ts](engine/phases/ships.md), [movement.ts](engine/phases/movement.md), [conflict.ts](engine/phases/conflict.md), [cities.ts](engine/phases/cities.md), [surplus.ts](engine/phases/surplus.md), [tradeAcquisition.ts](engine/phases/tradeAcquisition.md), [tradeNegotiation.ts](engine/phases/tradeNegotiation.md), [advances.ts](engine/phases/advances.md), [ast.ts](engine/phases/ast.md), [monotheism.ts](engine/phases/monotheism.md), [normalization.ts](engine/phases/normalization.md).
+- **[Sous-système des Calamités](engine/calamity/index.md)** :
+  - [calamityGeography.ts](engine/calamity/calamityGeography.md), [calamityPrimary.ts](engine/calamity/calamityPrimary.md), [calamityCivilWar.ts](engine/calamity/calamityCivilWar.md), [calamityBarbarians.ts](engine/calamity/calamityBarbarians.md), [calamityPicks.ts](engine/calamity/calamityPicks.md), [calamityNamedPicks.ts](engine/calamity/calamityNamedPicks.md), [calamityEvents.ts](engine/calamity/calamityEvents.md), [calamityRunner.ts](engine/calamity/calamityRunner.md).
 
 ### 7. Intelligence Artificielle (`src/ai/`)
 - [heuristic.ts](ai/heuristic.md) : Contrôleur heuristique principal.
 - [tradePlanner.ts](ai/tradePlanner.md) : Algorithme de proposition et réponse aux échanges.
 - [movePlanner.ts](ai/movePlanner.md) : Stratégie de déplacement terrestre et convoi naval.
+
+---
+
+### 8. Guides & Recette Joueurs
+- [Guide du Testeur](../GUIDE_TESTEUR.md) : Procédure pas-à-pas pour tester les parties locales, le hotseat, les sauvegardes et la navigation cartographique.

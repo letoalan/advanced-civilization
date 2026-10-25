@@ -97,6 +97,23 @@ export default function App({ sessionConfig, initialSave, onExitToMenu }: AppPro
   const planner = useMovementPlanner(state, actor, legal, apply);
   const inMovement = !!actor && seats[actor] === 'human' && state.phase === 'movement';
 
+  const activeHighlights = useMemo(() => {
+    if (inMovement) return planner.highlight;
+    if (state.pendingStart && actor && seats[actor] === 'human') {
+      return new Set(legal.filter((a): a is Extract<Action, { type: 'placeStart' }> => a.type === 'placeStart').map((a) => a.area));
+    }
+    if (state.pendingPick && actor && seats[actor] === 'human') return new Set(state.pendingPick.candidates);
+    return new Set<string>();
+  }, [inMovement, planner.highlight, state.pendingStart, state.pendingPick, legal, actor, seats]);
+
+  const handleSelectArea = useCallback((area: string | null) => {
+    if (area && state.pendingStart && actor && seats[actor] === 'human') {
+      const match = legal.find((a) => a.type === 'placeStart' && a.area === area);
+      if (match) { apply(match); return; }
+    }
+    setSelectedArea((prev) => (prev === area ? null : area));
+  }, [state.pendingStart, actor, seats, legal, apply]);
+
   useEffect(() => {
     if (view !== 'map') return;
     const target = inMovement && planner.origin ? planner.origin : (actor ? nationFocusArea(state, actor) : null);
@@ -118,8 +135,8 @@ export default function App({ sessionConfig, initialSave, onExitToMenu }: AppPro
 
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
           {view === 'map' ? (
-            <div ref={boardRef} style={{ flex: 1, position: 'relative', overflow: 'auto', background: '#0d3a4a' }}>
-              <Board state={state} selected={selectedArea} onSelect={setSelectedArea} highlight={planner.highlight} origin={planner.origin} moved={planner.moved} art={mapArt.art} />
+            <div ref={boardRef} style={{ flex: 1, position: 'relative', overflow: 'auto', background: '#0d3a4a', display: 'flex' }}>
+              <Board state={state} selected={selectedArea} onSelect={handleSelectArea} highlight={activeHighlights} origin={planner.origin} moved={planner.moved} art={mapArt.art} />
               <MapArtBanner mapArt={mapArt} />
             </div>
           ) : (
@@ -129,9 +146,9 @@ export default function App({ sessionConfig, initialSave, onExitToMenu }: AppPro
           )}
 
           <div style={{ width: 340, display: 'flex', flexDirection: 'column', background: '#14100c', borderLeft: '2px solid #5a3c1c' }}>
-            <div style={{ display: 'flex', borderBottom: '1px solid #4a3015', padding: 4 }}>
-              <ViewNav currentView={view} onSelectView={setView} onExit={() => onExitToMenu ? onExitToMenu() : location.reload()} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, borderBottom: '1px solid #4a3015', padding: 6 }}>
               <StatusPanel state={state} id={focus} />
+              <ViewNav currentView={view} onSelectView={setView} onExit={() => onExitToMenu ? onExitToMenu() : location.reload()} />
             </div>
 
             <div style={{ flex: 1, padding: 8, display: 'flex', flexDirection: 'column', gap: 6, overflowY: 'auto' }}>
