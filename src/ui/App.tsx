@@ -14,11 +14,8 @@ import { ActionList, MovementControls, useMovementPlanner } from './components/p
 import { CombatModal, CalamityModal, LocalDiagnosticModal } from './components/modals/index.js';
 import { InfoView } from './components/views/index.js';
 
-export * from './components/board/index.js';
-export * from './components/navigation/index.js';
-export * from './components/phases/index.js';
-export * from './components/modals/index.js';
-export * from './components/views/index.js';
+export * from './components/board/index.js'; export * from './components/navigation/index.js';
+export * from './components/phases/index.js'; export * from './components/modals/index.js'; export * from './components/views/index.js';
 
 const ai = new HeuristicAI();
 const DEFAULT_CIVS: PlayerId[] = ['egypt', 'babylon', 'assyria', 'asia'];
@@ -107,12 +104,17 @@ export default function App({ sessionConfig, initialSave, onExitToMenu }: AppPro
   }, [inMovement, planner.highlight, state.pendingStart, state.pendingPick, legal, actor, seats]);
 
   const handleSelectArea = useCallback((area: string | null) => {
+    if (inMovement) { planner.onBoardClick(area); return; }
     if (area && state.pendingStart && actor && seats[actor] === 'human') {
       const match = legal.find((a) => a.type === 'placeStart' && a.area === area);
       if (match) { apply(match); return; }
     }
+    if (area && state.phase === 'populationExpansion' && actor && seats[actor] === 'human') {
+      const match = legal.find((a) => a.type === 'placeTokens' && Object.keys(a.placements).includes(area));
+      if (match) { apply(match); return; }
+    }
     setSelectedArea((prev) => (prev === area ? null : area));
-  }, [state.pendingStart, actor, seats, legal, apply]);
+  }, [inMovement, planner, state.pendingStart, state.phase, actor, seats, legal, apply]);
 
   useEffect(() => {
     if (view !== 'map') return;
@@ -136,7 +138,11 @@ export default function App({ sessionConfig, initialSave, onExitToMenu }: AppPro
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
           {view === 'map' ? (
             <div ref={boardRef} style={{ flex: 1, position: 'relative', overflow: 'auto', background: '#0b1922', display: 'flex' }}>
-              <Board state={state} selected={selectedArea} onSelect={handleSelectArea} highlight={activeHighlights} origin={planner.origin} moved={planner.moved} art={mapArt.art} />
+              <Board
+                state={inMovement ? planner.previewState : state} selected={inMovement ? planner.origin : selectedArea}
+                onSelect={handleSelectArea} highlight={activeHighlights} origin={inMovement ? planner.origin : null}
+                moved={inMovement ? planner.moved : undefined} zoomTo={inMovement ? planner.origin : null} art={mapArt.art}
+              />
               <MapArtBanner mapArt={mapArt} />
             </div>
           ) : (

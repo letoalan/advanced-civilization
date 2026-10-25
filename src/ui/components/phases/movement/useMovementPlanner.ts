@@ -92,28 +92,23 @@ export function useMovementPlanner(
 
   const onBoardClick = useCallback(
     (area: string | null) => {
-      if (!active || !area) return;
+      if (!active) return;
+      if (!area) { setOrigin(null); return; }
       if (voyagePlanner.voyage && voyagePlanner.walk) {
-        if (voyagePlanner.walk.legalNext.has(area)) {
-          voyagePlanner.setVoyage([...voyagePlanner.voyage, { area }]);
-        }
+        if (voyagePlanner.walk.legalNext.has(area)) voyagePlanner.setVoyage([...voyagePlanner.voyage, { area }]);
         return;
       }
       if (!origin) {
-        if (origins.has(area)) {
-          setOrigin(area);
-          setCountRaw(1);
-        }
+        if (origins.has(area)) { setOrigin(area); setCountRaw(1); }
         return;
       }
-      if (area === origin) {
-        setOrigin(null);
-        return;
-      }
+      if (area === origin) { setOrigin(null); return; }
       const opt = dests?.get(area);
       if (opt) {
+        if (!opt.byShip && available(origin) <= 0) return;
         const max = Math.min(available(origin), opt.byShip ? 5 : Infinity);
         const n = opt.byShip ? Math.min(count, max) : Math.max(1, Math.min(count, max));
+        if (!opt.byShip && n <= 0) return;
         setQueued((q) => [
           ...q,
           { from: origin, to: area, count: n, ...(opt.byShip ? { byShip: true } : {}), ...(opt.via ? { via: opt.via } : {}) },
@@ -122,10 +117,7 @@ export function useMovementPlanner(
         setCountRaw(1);
         return;
       }
-      if (origins.has(area)) {
-        setOrigin(area);
-        setCountRaw(1);
-      }
+      if (origins.has(area)) { setOrigin(area); setCountRaw(1); }
     },
     [active, origin, origins, dests, count, available, voyagePlanner],
   );
