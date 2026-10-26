@@ -65,13 +65,13 @@ export function BoardAntiqueBackground({ outSet }: BoardAntiqueBackgroundProps) 
       {/* Concentric bathymetric coastal wave ripples radiating outwards into the sea */}
       <g id="atlas-bathymetry" pointerEvents="none">
         {landRipples.map((pts, i) => (
-          <polygon key={`r3-${i}`} points={pts} fill="none" stroke="#16394c" strokeWidth={11} strokeLinejoin="round" opacity={0.65} />
+          <polygon key={`r3-${i}`} points={pts} fill="none" stroke="#25516a" strokeWidth={11} strokeLinejoin="round" opacity={0.24} />
         ))}
         {landRipples.map((pts, i) => (
-          <polygon key={`r2-${i}`} points={pts} fill="none" stroke="#1e4961" strokeWidth={6} strokeLinejoin="round" opacity={0.8} />
+          <polygon key={`r2-${i}`} points={pts} fill="none" stroke="#336e8e" strokeWidth={6} strokeLinejoin="round" opacity={0.28} />
         ))}
         {landRipples.map((pts, i) => (
-          <polygon key={`r1-${i}`} points={pts} fill="none" stroke="#2a607d" strokeWidth={3} strokeLinejoin="round" opacity={0.9} />
+          <polygon key={`r1-${i}`} points={pts} fill="none" stroke="#5499be" strokeWidth={2.4} strokeLinejoin="round" opacity={0.34} />
         ))}
       </g>
 
@@ -89,9 +89,9 @@ export function BoardAntiqueBackground({ outSet }: BoardAntiqueBackgroundProps) 
                     key={i}
                     points={sub.points}
                     strokeLinejoin="round"
-                    strokeWidth={sub.kind === 'land' ? 1.4 : 0.8}
+                    strokeWidth={sub.kind === 'land' ? 1.8 : 0.8}
                     fill={sub.kind === 'sea' ? '#112b38' : 'url(#atlas-coast-gradient)'}
-                    stroke={sub.kind === 'sea' ? '#193f54' : '#3d2d1d'}
+                    stroke={sub.kind === 'sea' ? '#193f54' : '#231a11'}
                   />
                 ))}
               </g>
@@ -102,7 +102,7 @@ export function BoardAntiqueBackground({ outSet }: BoardAntiqueBackgroundProps) 
             return (
               <g key={s.id}>
                 <polygon points={s.points} strokeLinejoin="round" strokeWidth={1.2} fill="#1d2127" stroke="#363f4b" />
-                <polygon points={s.points} strokeLinejoin="round" fill="url(#atlas-out-hatch)" opacity={0.35} />
+                <polygon points={s.points} strokeLinejoin="round" fill="url(#atlas-out-hatch)" opacity={0.4} />
               </g>
             );
           }
@@ -126,13 +126,22 @@ export function BoardAntiqueBackground({ outSet }: BoardAntiqueBackgroundProps) 
               key={s.id}
               points={s.points}
               strokeLinejoin="round"
-              strokeWidth={1.1}
+              strokeWidth={1.0}
               strokeDasharray="4 2.5"
               fill="url(#atlas-land-gradient)"
-              stroke="#7c6346"
+              stroke="#7a5f3e"
+              opacity={0.96}
             />
           );
         })}
+
+        {/* Fine historical antique rivers: Nile, Euphrates, Tigris, Danube */}
+        <g id="atlas-historical-rivers" fill="none" stroke="#1c485c" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" opacity={0.65}>
+          <path d="M 2150 1350 Q 2120 1280 2050 1180 Q 1960 1100 1920 1020 Q 1900 970 1880 940" />
+          <path d="M 2080 540 Q 2240 570 2360 580 Q 2480 620 2560 670 Q 2620 710 2660 730" />
+          <path d="M 2260 410 Q 2360 460 2420 510 Q 2520 570 2640 630" />
+          <path d="M 1120 250 Q 1240 330 1360 370 Q 1480 300 1570 330 Q 1600 370 1620 390" />
+        </g>
 
         {/* Plausible interior Sahara desert continental landmass */}
         <BoardAntiqueSahara isOut={outSet.has('west-mauretania')} />

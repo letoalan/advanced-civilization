@@ -37,6 +37,7 @@ export function BoardControls({
   onZoomIn,
   onZoomOut,
   onZoomFit,
+  onZoomCover,
   onToggleStyle,
   onToggleTerrain,
 }: BoardControlsProps) {
