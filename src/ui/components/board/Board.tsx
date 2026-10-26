@@ -100,15 +100,15 @@ export function Board({ state, selected, onSelect, highlight, zoomTo, origin, mo
           const a = state.areas[aid] ?? { tokens: {} as Record<string, number> };
           const meta = areaById.get(aid);
           const owners = Object.entries(a.tokens).filter(([, n]) => n > 0);
-          const showCap = !!meta && !meta.isWater && meta.sustains > 0 && !a.city;
-          const showCitySite = !!meta && meta.isCitySite && !a.city;
           const isHi = highlight.has(aid);
           const isSel = selected === aid;
+          const isHov = hovered === aid;
+          const showCap = !!meta && !meta.isWater && meta.sustains > 0 && !a.city && (zoom >= 0.85 || isSel || isHi || isHov || owners.length > 0);
+          const showCitySite = !!meta && meta.isCitySite && !a.city;
           const isPeek = peek.has(aid);
           const isOrigin = origin === aid;
           const isMoved = !!moved?.has(aid);
           const ships = Object.entries(a.ships ?? {}).filter(([, n]) => n > 0);
-          const isHov = hovered === aid;
 
           const fillTactical = isSel ? theme.selection : isOrigin ? theme.origin : isHi ? theme.highlight : 'transparent';
           const strokeTactical = isOrigin ? theme.originStroke : isSel ? theme.selectionStroke : isHi ? theme.highlightStroke : undefined;
@@ -157,7 +157,7 @@ export function Board({ state, selected, onSelect, highlight, zoomTo, origin, mo
               ))}
 
               {showCitySite && <CitySiteEmblem cx={an.x} cy={an.y} hasPieces={owners.length > 0} style={style} />}
-              {a.city && <CityMarker cx={an.x} cy={an.y} r={an.r} owner={a.city} style={style} />}
+              {a.city && <CityMarker cx={an.x} cy={an.y} r={an.r} owner={a.city} isNaturalSite={meta?.isCitySite ?? false} style={style} />}
               {owners.map(([owner, n], i) => (
                 <TokenMarker key={owner} cx={an.x} cy={an.y} r={an.r} owner={owner} count={n} offsetIndex={i} style={style} />
               ))}

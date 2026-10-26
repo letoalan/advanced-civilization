@@ -23,6 +23,12 @@ export function BoardLabels({ zoom, outSet }: BoardLabelsProps) {
         // Skip naval routing plumbing
         if (meta.coastalWater) return null;
 
+        // Level of Detail (LOD):
+        // Hide minor provinces (sustains <= 1 and no city site) when zoomed out to full Mediterranean
+        if (zoom < 0.82 && !meta.isWater && meta.sustains <= 1 && !meta.isCitySite) {
+          return null;
+        }
+
         const isWater = meta.isWater;
         const labelY = an.y - an.r - 3;
 
@@ -34,10 +40,10 @@ export function BoardLabels({ zoom, outSet }: BoardLabelsProps) {
             textAnchor="middle"
             fontFamily={ATLAS_THEME.fontSerif}
             fontSize={fontScale}
-            fontWeight="bold"
-            letterSpacing={0.8}
-            fill={isWater ? '#2a5369' : '#3d2e1f'}
-            stroke={isWater ? 'rgba(235, 245, 252, 0.9)' : 'rgba(255, 252, 243, 0.92)'}
+            fontWeight="700"
+            letterSpacing={isWater ? 1.4 : 0.8}
+            fill={isWater ? '#255a73' : '#1f252e'}
+            stroke={isWater ? 'rgba(235, 246, 252, 0.94)' : 'rgba(250, 248, 240, 0.94)'}
             strokeWidth={strokeW}
             strokeLinejoin="round"
             paintOrder="stroke fill"

@@ -40,15 +40,22 @@ export function nationFocusArea(state: GameState, id: PlayerId): string | null {
 export function scrollBoardTo(container: HTMLElement | null, areaId: string | null) {
   if (!container || !areaId) return;
   const an = anchors[areaId];
-  const svg = container.querySelector('svg') as SVGSVGElement | null;
-  if (!an || !svg) return;
-  const rect = svg.getBoundingClientRect();
-  if (!rect.width || !rect.height) return;
-  const sx = rect.width / BOARD_VIEWBOX.w;
-  const sy = rect.height / BOARD_VIEWBOX.h;
-  container.scrollTo({
-    left: an.x * sx - container.clientWidth / 2,
-    top: an.y * sy - container.clientHeight / 2,
-    behavior: 'smooth',
-  });
+  if (!an) return;
+  const doScroll = () => {
+    const svg = container.querySelector('svg') as SVGSVGElement | null;
+    if (!svg) return;
+    const rect = svg.getBoundingClientRect();
+    if (!rect.width || !rect.height) {
+      setTimeout(doScroll, 100);
+      return;
+    }
+    const sx = rect.width / BOARD_VIEWBOX.w;
+    const sy = rect.height / BOARD_VIEWBOX.h;
+    container.scrollTo({
+      left: Math.max(0, an.x * sx - container.clientWidth / 2),
+      top: Math.max(0, an.y * sy - container.clientHeight / 2),
+      behavior: 'smooth',
+    });
+  };
+  doScroll();
 }

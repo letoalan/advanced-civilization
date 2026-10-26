@@ -1,0 +1,330 @@
+/* ==========================================================================
+   ADVANCED CIVILIZATION — ARCHAEOLOGICAL MUSEUM DESIGN SYSTEM
+   Inspired by Museo Archeologico Nazionale di Napoli (MANN) & Acropolis Museum
+   ========================================================================== */
+
+:root {
+  /* Fine Materials & Gallery Tones */
+  --civ-stone-950: #0a0d12;
+  --civ-stone-900: #10141b;
+  --civ-stone-850: #151a23;
+  --civ-stone-800: #1b222e;
+  --civ-stone-700: #293242;
+  --civ-stone-muted: #959fad;
+  --civ-stone-hairline: rgba(255, 255, 255, 0.08);
+
+  /* Regal Antique Gold Leaf & Museum Patinated Bronze */
+  --civ-gold-light: #fde8ad;
+  --civ-gold-base: #d4af37;
+  --civ-gold-deep: #b28928;
+  --civ-gold-dark: #7a5c12;
+  --civ-gold-glow: rgba(212, 175, 55, 0.28);
+  --civ-gold-border: rgba(212, 175, 55, 0.35);
+  --civ-gold-border-subtle: rgba(212, 175, 55, 0.18);
+
+  /* Pentelic Marble & Antique Vellum */
+  --civ-marble: #f7f4ec;
+  --civ-parchment: #e8e0d0;
+  --civ-vellum-dark: #322b22;
+
+  /* Terracotta & Mediterranean Ultramarine */
+  --civ-terracotta: #a34336;
+  --civ-terracotta-light: #f87171;
+  --civ-aegean: #163652;
+  --civ-aegean-light: #60a5fa;
+
+  /* Exhibition Vitrine Glassmorphism */
+  --civ-glass-bg: rgba(13, 17, 23, 0.78);
+  --civ-glass-bg-subtle: rgba(16, 21, 28, 0.65);
+  --civ-glass-bg-strong: rgba(10, 13, 18, 0.88);
+  --civ-glass-border: rgba(212, 175, 55, 0.28);
+  --civ-glass-border-subtle: rgba(255, 255, 255, 0.09);
+  --civ-glass-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  --civ-glass-shadow-lg: 0 20px 50px -6px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(212, 175, 55, 0.25);
+  --civ-blur-sm: blur(10px);
+  --civ-blur: blur(18px);
+  --civ-blur-lg: blur(28px);
+
+  /* Typography: Classical Lapidary Inscriptions + Geometric Gallery Sans */
+  --civ-font-display: 'Cinzel', 'Cormorant Garamond', 'Palatino', serif;
+  --civ-font-serif: 'Cormorant Garamond', 'Cinzel', Georgia, serif;
+  --civ-font-body: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Radii */
+  --civ-radius-sm: 4px;
+  --civ-radius-md: 8px;
+  --civ-radius-lg: 14px;
+  --civ-radius-pill: 9999px;
+
+  /* Transitions */
+  --civ-ease-smooth: cubic-bezier(0.2, 0, 0, 1);
+  --civ-transition-fast: 160ms var(--civ-ease-smooth);
+  --civ-transition-normal: 260ms var(--civ-ease-smooth);
+}
+
+/* Glass Vitrine Panels */
+.glass-panel {
+  background: var(--civ-glass-bg);
+  backdrop-filter: var(--civ-blur);
+  -webkit-backdrop-filter: var(--civ-blur);
+  border: 1px solid var(--civ-glass-border);
+  box-shadow: var(--civ-glass-shadow);
+  color: var(--civ-marble);
+  border-radius: var(--civ-radius-lg);
+  transition: border-color var(--civ-transition-fast), box-shadow var(--civ-transition-fast);
+}
+
+.glass-panel--gold {
+  border-color: var(--civ-gold-border);
+  box-shadow: var(--civ-glass-shadow-lg), 0 0 20px rgba(212, 175, 55, 0.12);
+}
+
+/* Museum Plinth & Console Buttons */
+.glass-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(22, 28, 38, 0.72);
+  backdrop-filter: var(--civ-blur-sm);
+  -webkit-backdrop-filter: var(--civ-blur-sm);
+  border: 1px solid var(--civ-glass-border);
+  border-radius: var(--civ-radius-sm);
+  color: var(--civ-parchment);
+  font-family: var(--civ-font-body);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  padding: 5px 12px;
+  cursor: pointer;
+  user-select: none;
+  transition: all var(--civ-transition-fast);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  outline: none;
+}
+
+.glass-btn:hover:not(:disabled) {
+  background: rgba(35, 45, 60, 0.9);
+  border-color: var(--civ-gold-base);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5), 0 0 10px rgba(212, 175, 55, 0.25);
+}
+
+.glass-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.glass-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  filter: grayscale(60%);
+}
+
+/* Primary Imperial Action Button (Gold Leaf Medal) */
+.glass-btn--primary {
+  background: linear-gradient(135deg, #c59b27 0%, #8c6812 50%, #5c4106 100%);
+  border: 1.5px solid var(--civ-gold-base);
+  color: #ffffff;
+  font-family: var(--civ-font-body);
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), 0 0 16px var(--civ-gold-glow);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-btn--primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #dfb43a 0%, #aa801a 50%, #73530c 100%);
+  border-color: #fff;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.7), 0 0 24px rgba(212, 175, 55, 0.45);
+}
+
+.glass-btn--danger {
+  background: linear-gradient(135deg, #991b1b 0%, #6b1414 100%);
+  border-color: #f87171;
+  color: #fff;
+}
+
+/* Museum Cartel / Artifact Tag */
+.museum-cartel {
+  background: rgba(14, 18, 25, 0.92);
+  backdrop-filter: var(--civ-blur);
+  -webkit-backdrop-filter: var(--civ-blur);
+  border: 1px solid var(--civ-gold-border);
+  border-radius: var(--civ-radius-md);
+  box-shadow: var(--civ-glass-shadow-lg);
+  color: var(--civ-marble);
+  padding: 8px 12px;
+}
+
+.museum-cartel__title {
+  font-family: var(--civ-font-display);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--civ-gold-light);
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.museum-cartel__meta {
+  font-family: var(--civ-font-body);
+  font-size: 10px;
+  color: var(--civ-stone-muted);
+  letter-spacing: 0.3px;
+}
+
+/* Museum Gallery Topbar */
+.glass-topbar {
+  position: absolute;
+  top: 10px;
+  left: 14px;
+  right: 14px;
+  height: 48px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  background: var(--civ-glass-bg);
+  backdrop-filter: var(--civ-blur);
+  -webkit-backdrop-filter: var(--civ-blur);
+  border: 1px solid var(--civ-glass-border);
+  border-radius: var(--civ-radius-md);
+  box-shadow: var(--civ-glass-shadow);
+  user-select: none;
+}
+
+/* Architectural Bottom Action Plinth (Console de Jeu) */
+.glass-dock {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 18px;
+  background: var(--civ-glass-bg-strong);
+  backdrop-filter: var(--civ-blur-lg);
+  -webkit-backdrop-filter: var(--civ-blur-lg);
+  border: 1px solid var(--civ-glass-border);
+  border-radius: var(--civ-radius-lg);
+  box-shadow: var(--civ-glass-shadow-lg), 0 0 24px rgba(0, 0, 0, 0.7);
+  max-width: 92vw;
+  max-height: calc(100vh - 75px);
+  box-sizing: border-box;
+}
+
+.glass-dock--trade {
+  width: min(1200px, 96vw);
+  max-width: 96vw;
+  max-height: calc(100vh - 75px);
+  padding: 12px 18px;
+  box-sizing: border-box;
+}
+
+/* Museum Sculpted Scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(10, 13, 18, 0.7);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--civ-gold-border);
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.5);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--civ-gold-base);
+}
+
+.civ-custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--civ-gold-border) rgba(10, 13, 18, 0.7);
+  overflow-y: auto;
+}
+
+/* Glass Caskets for Resources */
+.glass-casket {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(22, 28, 38, 0.65);
+  backdrop-filter: var(--civ-blur-sm);
+  -webkit-backdrop-filter: var(--civ-blur-sm);
+  border: 1px solid var(--civ-gold-border-subtle);
+  border-radius: var(--civ-radius-sm);
+  padding: 3px 8px;
+  color: var(--civ-parchment);
+  font-size: 11px;
+  font-weight: 600;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.glass-casket:hover {
+  border-color: var(--civ-gold-base);
+  background: rgba(30, 38, 50, 0.85);
+}
+
+/* Turn Order Timeline Plinth */
+.timeline-plinth {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(18, 24, 34, 0.72);
+  backdrop-filter: var(--civ-blur-sm);
+  border: 1px solid var(--civ-stone-hairline);
+  border-radius: var(--civ-radius-sm);
+  padding: 2px 8px;
+}
+
+/* Idle Focus Mode (dimming) */
+.civ-focus-idle {
+  opacity: 0.25 !important;
+  pointer-events: auto;
+}
+.civ-focus-idle:hover {
+  opacity: 1 !important;
+}
+
+/* Animations */
+@keyframes civ-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes civ-pop {
+  0% { transform: scale(0.95); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes civ-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(212, 175, 55, 0); }
+}
+
+@keyframes civ-banner-slide {
+  0% { transform: translateY(-30px); opacity: 0; }
+  15% { transform: translateY(0); opacity: 1; }
+  85% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-20px); opacity: 0; }
+}
+
+.animate-fade-in { animation: civ-fade-in 0.22s ease forwards; }
+.animate-pop { animation: civ-pop 0.25s var(--civ-ease-smooth) forwards; }
+.animate-pulse { animation: civ-pulse 2.2s infinite ease-in-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

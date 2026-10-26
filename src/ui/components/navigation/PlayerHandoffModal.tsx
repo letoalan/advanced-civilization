@@ -26,31 +26,34 @@ export function PlayerHandoffModal({
 
   return (
     <div
+      className="animate-fade-in"
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(10, 8, 6, 0.94)',
-        backdropFilter: 'blur(8px)',
+        background: 'rgba(6, 9, 13, 0.94)',
+        backdropFilter: 'var(--civ-blur-lg)',
+        WebkitBackdropFilter: 'var(--civ-blur-lg)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 500,
-        color: '#f0e6d2',
+        color: 'var(--civ-marble)',
         padding: 24,
         textAlign: 'center',
         userSelect: 'none',
       }}
     >
       <div
+        className="glass-panel animate-pop"
         style={{
-          background: '#1d1712',
-          border: `2px solid ${civColor}`,
-          borderRadius: 12,
-          padding: 28,
-          maxWidth: 460,
+          background: 'rgba(16, 21, 28, 0.96)',
+          border: `1.5px solid ${civColor}`,
+          borderRadius: 14,
+          padding: 32,
+          maxWidth: 480,
           width: '90vw',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.8)',
+          boxShadow: 'var(--civ-glass-shadow-lg), 0 0 30px rgba(0,0,0,0.9)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -58,34 +61,30 @@ export function PlayerHandoffModal({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ width: 14, height: 14, borderRadius: 3, background: civColor }} />
-          <span style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 2, color: civColor, fontWeight: 800 }}>
-            Changement de Joueur
+          <span style={{ width: 12, height: 12, borderRadius: '50%', background: civColor, boxShadow: `0 0 8px ${civColor}` }} />
+          <span style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 2, color: civColor, fontWeight: 800 }}>
+            Transmission du Commandement
           </span>
         </div>
 
-        <h2 style={{ margin: 0, color: '#f8edd4', fontSize: 24, fontWeight: 900 }}>
+        <h2 style={{ margin: 0, color: 'var(--civ-gold-light)', fontFamily: 'var(--civ-font-display)', fontSize: 24, fontWeight: 800, letterSpacing: 0.8 }}>
           Au tour de {playerName}
         </h2>
 
-        <p style={{ margin: 0, fontSize: 13, color: '#baa', lineHeight: 1.5 }}>
-          Les cartes en main et décisions du joueur précédent ont été masquées pour préserver le secret de la partie.
+        <p style={{ margin: 0, fontSize: 13, color: 'var(--civ-stone-muted)', lineHeight: 1.55 }}>
+          Les archives, rouleaux et cartes en main du joueur précédent ont été préservés du regard pour respecter le secret de l'histoire.
         </p>
 
         <button
-          className="civ-btn"
+          className="glass-btn glass-btn--primary"
           style={{
-            fontSize: 16,
+            fontSize: 14,
             padding: '12px 28px',
-            fontWeight: 800,
-            background: civColor,
-            color: '#1a1005',
-            borderColor: '#7a5020',
             marginTop: 6,
           }}
           onClick={onReveal}
         >
-          👁️ Afficher mon tour
+          👁️ Révéler mon audience impériale
         </button>
 
         {onSwitchToOpenTable && (
@@ -94,7 +93,7 @@ export function PlayerHandoffModal({
             style={{
               background: 'none',
               border: 'none',
-              color: '#887766',
+              color: 'var(--civ-stone-muted)',
               fontSize: 11,
               textDecoration: 'underline',
               cursor: 'pointer',

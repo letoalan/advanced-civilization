@@ -9,23 +9,73 @@ interface TurnOrderTabsProps {
 
 export function TurnOrderTabs({ state, actor, seats }: TurnOrderTabsProps) {
   return (
-    <div style={{ display: 'flex' }}>
-      {state.activeOrder.map((id) => (
-        <div key={id} className={`civ-tab ${actor === id ? 'act' : ''}`}>
-          <span
+    <aside
+      className="animate-fade-in"
+      style={{
+        position: 'absolute',
+        bottom: 12,
+        left: 14,
+        zIndex: 42,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6,
+        padding: '4px 10px',
+        background: 'rgba(12, 16, 22, 0.82)',
+        backdropFilter: 'var(--civ-blur-sm)',
+        WebkitBackdropFilter: 'var(--civ-blur-sm)',
+        border: '1px solid var(--civ-gold-border-subtle)',
+        borderRadius: 'var(--civ-radius-md)',
+        boxShadow: 'var(--civ-glass-shadow)',
+        fontSize: 11,
+        userSelect: 'none',
+      }}
+    >
+      <span
+        style={{
+          fontFamily: 'var(--civ-font-display)',
+          fontSize: 9,
+          textTransform: 'uppercase',
+          color: 'var(--civ-gold-light)',
+          fontWeight: 800,
+          letterSpacing: 0.8,
+          marginRight: 2,
+        }}
+      >
+        Ordre :
+      </span>
+      {state.activeOrder.map((id, idx) => {
+        const isAct = actor === id;
+        const civ = civById.get(id);
+        return (
+          <div
+            key={id}
             style={{
-              display: 'inline-block',
-              width: 9,
-              height: 9,
-              background: civById.get(id)?.color,
-              marginRight: 4,
-              borderRadius: 2,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              padding: '2px 6px',
+              borderRadius: 4,
+              background: isAct ? 'rgba(212, 175, 55, 0.2)' : 'transparent',
+              border: isAct ? '1px solid var(--civ-gold-base)' : '1px solid transparent',
+              color: isAct ? '#ffffff' : 'var(--civ-parchment)',
+              fontWeight: isAct ? 800 : 500,
             }}
-          />
-          {civById.get(id)?.name}
-          {seats[id] === 'ai' ? ' (IA)' : ''}
-        </div>
-      ))}
-    </div>
+          >
+            <span
+              style={{
+                width: 7,
+                height: 7,
+                borderRadius: '50%',
+                background: civ?.color ?? '#888',
+                boxShadow: isAct ? `0 0 6px ${civ?.color ?? '#ffd23f'}` : undefined,
+              }}
+            />
+            <span>{civ?.name}</span>
+            {seats[id] === 'ai' && <span style={{ opacity: 0.5, fontSize: 9 }}>IA</span>}
+            {idx < state.activeOrder.length - 1 && <span style={{ opacity: 0.3, marginLeft: 2 }}>➔</span>}
+          </div>
+        );
+      })}
+    </aside>
   );
 }

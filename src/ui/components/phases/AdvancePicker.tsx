@@ -2,7 +2,8 @@ import { useState, type CSSProperties } from 'react';
 import { advances as ALL_ADVANCES, advanceById, commodityById } from '../../../data/index.js';
 import { miningAvailable, creditTowards, handValue } from '../../../engine/helpers.js';
 import type { Action, GameState, PlayerId } from '../../../engine/types.js';
-import { AdvanceTip } from '../views/index.js';
+import { AdvanceCard } from '../../cards/AdvanceCard.js';
+import { AdvanceDetailModal } from '../views/index.js';
 
 interface AdvancePickerProps {
   state: GameState;
@@ -10,13 +11,13 @@ interface AdvancePickerProps {
   onApply: (a: Action) => void;
 }
 
-const NOTE: CSSProperties = { color: '#5a1e06', fontWeight: 600 };
+const NOTE: CSSProperties = { color: '#fca5a5', fontWeight: 600, fontSize: 11 };
 
 export function AdvancePicker({ state, actor, onApply }: AdvancePickerProps) {
   const p = state.players[actor]!;
   const mining = miningAvailable(p);
   const [sel, setSel] = useState<string[]>([]);
-  const [tip, setTip] = useState<string>('');
+  const [detailId, setDetailId] = useState<string | null>(null);
   const [spend, setSpend] = useState<Record<string, number>>({});
   const [treasury, setTreasury] = useState(0);
 
@@ -46,8 +47,7 @@ export function AdvancePicker({ state, actor, onApply }: AdvancePickerProps) {
   const credit = basket.reduce((t, a) => t + creditFor(a.id), 0);
   const cost = basket.reduce((t, a) => t + a.cost, 0);
 
-  const treasuryNeeded = Math.max(0, cost - cardVal - credit);
-  const maxTreasury = Math.min(p.treasury, treasuryNeeded);
+  const maxTreasury = Math.min(p.treasury, Math.max(0, cost - cardVal - credit));
   const treasuryUsed = Math.min(treasury, maxTreasury);
   const paid = cardVal + treasuryUsed + credit;
   const canBuy = basket.length > 0 && paid >= cost;
@@ -59,8 +59,7 @@ export function AdvancePicker({ state, actor, onApply }: AdvancePickerProps) {
     setSpend((s) => {
       const n = (s[c] ?? 0) - 1;
       const o = { ...s };
-      if (n <= 0) delete o[c];
-      else o[c] = n;
+      if (n <= 0) delete o[c]; else o[c] = n;
       return o;
     });
 
@@ -82,53 +81,113 @@ export function AdvancePicker({ state, actor, onApply }: AdvancePickerProps) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <span className="civ-lbl">
-        Acquérir des progrès — choisissez-en un ou plusieurs, puis payez le panier global (marchandises + trésor + réductions). Trésor disponible : {p.treasury}.
-      </span>
-      {grainLocked > 0 && <span className="civ-lbl" style={NOTE}>🔒 {grainLocked} carte(s) de Grain verrouillée(s) par la famine (§30.312).</span>}
-      {p.advances.includes('mining') && !mining && <span className="civ-lbl" style={NOTE}>⛏ Industrie Minière déjà utilisée ce tour.</span>}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: 12, color: 'var(--civ-gold-light)', fontWeight: 700, textTransform: 'uppercase' }}>
+          Acquérir des progrès de civilisation — Trésor : {p.treasury}
+        </span>
+        <span style={{ fontSize: 11, color: 'var(--civ-stone-muted)' }}>
+          {available.length} progrès disponibles à la recherche
+        </span>
+      </div>
+
+      {grainLocked > 0 && <span style={NOTE}>🔒 {grainLocked} carte(s) de Grain verrouillée(s) par la famine (§30.312).</span>}
+      {p.advances.includes('mining') && !mining && <span style={NOTE}>⛏ Industrie Minière déjà utilisée ce tour.</span>}
+
+      {/* Available Advances Gallery with Cards */}
+      <div
+        className="civ-custom-scrollbar"
+        style={{
+          display: 'flex',
+          gap: 8,
+          overflowX: 'auto',
+          paddingBottom: 6,
+          maxHeight: 165,
+          alignItems: 'center',
+        }}
+      >
         {available.length === 0 && <span className="civ-lbl">Aucun progrès disponible.</span>}
         {available.map((a) => {
           const aff = affordable(a);
           const on = sel.includes(a.id);
+          const effCost = Math.max(0, a.cost - creditFor(a.id));
+
           return (
-            <span key={a.id} style={{ position: 'relative', display: 'inline-block' }} onMouseEnter={() => setTip(a.id)} onMouseLeave={() => setTip((t) => (t === a.id ? '' : t))}>
-              <button className={`civ-btn ${on ? 'on' : ''}`} style={{ fontSize: 11, border: `2px solid ${on ? '#e6b85a' : aff ? '#5fbf6a' : 'transparent'}`, opacity: aff || on ? 1 : 0.55 }} onClick={() => toggle(a.id)}>
-                {on ? '● ' : aff ? '✓ ' : ''}{a.name} ({a.cost}{creditFor(a.id) ? `, −${creditFor(a.id)}` : ''})
+            <div key={a.id} style={{ position: 'relative', flexShrink: 0 }}>
+              <AdvanceCard
+                id={a.id}
+                effectiveCost={effCost}
+                isSelected={on}
+                disabled={!aff && !on}
+                onClick={() => toggle(a.id)}
+                width={94}
+                height={140}
+              />
+              <button
+                onClick={(e) => { e.stopPropagation(); setDetailId(a.id); }}
+                style={{
+                  position: 'absolute',
+                  top: 3,
+                  left: 3,
+                  background: 'rgba(0,0,0,0.7)',
+                  color: 'var(--civ-gold-light)',
+                  border: '1px solid var(--civ-gold-border)',
+                  borderRadius: '50%',
+                  width: 16,
+                  height: 16,
+                  fontSize: 10,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  zIndex: 2,
+                }}
+                title="Détails du progrès"
+              >
+                i
               </button>
-              {tip === a.id && <AdvanceTip id={a.id} />}
-            </span>
+            </div>
           );
         })}
       </div>
+
+      {/* Selected Basket & Payment Controls */}
       {basket.length > 0 && (
-        <div style={{ border: '1px solid #7a4a18', borderRadius: 4, padding: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <div className="civ-lbl">Achat de <b>{basket.map((a) => a.name).join(' + ')}</b> — coût {cost}{credit ? `, ${credit} en réductions` : ''} :</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+        <div style={{ border: '1px solid var(--civ-gold-border)', background: 'rgba(16, 21, 28, 0.9)', borderRadius: 8, padding: 8, display: 'flex', flexDirection: 'column', gap: 5, boxShadow: 'var(--civ-glass-shadow)' }}>
+          <div style={{ fontSize: 11, color: 'var(--civ-gold-light)', fontWeight: 700 }}>
+            Panier : <b>{basket.map((a) => a.name).join(' + ')}</b> — coût {cost}{credit ? `, ${credit} en réductions` : ''}
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
             {commHand.map(([c, n]) => (
-              <span key={c} style={{ display: 'inline-flex', alignItems: 'center', gap: 2, border: '1px solid #7a4a18', borderRadius: 4, padding: '0 3px', background: spend[c] ? 'rgba(90,140,106,0.35)' : undefined }}>
-                <button className="civ-btn" style={{ padding: '0 5px' }} disabled={spendable(c) <= 0} onClick={() => addSpend(c)}>
-                  {cName(c)} {spend[c] ? `${spend[c]}/${spendable(c)}` : `×${n}`}
-                </button>
-                {(spend[c] ?? 0) > 0 && <button className="civ-btn" style={{ padding: '0 4px' }} onClick={() => rmSpend(c)}>−</button>}
+              <span key={c} style={{ display: 'inline-flex', alignItems: 'center', gap: 2, border: '1px solid var(--civ-gold-border-subtle)', borderRadius: 4, padding: '1px 4px', background: spend[c] ? 'rgba(35, 55, 45, 0.6)' : 'rgba(20, 26, 36, 0.6)' }}>
+                <button className="glass-btn" style={{ padding: '2px 5px', fontSize: 10 }} disabled={spendable(c) <= 0} onClick={() => addSpend(c)}>{cName(c)} {spend[c] ? `${spend[c]}/${spendable(c)}` : `×${n}`}</button>
+                {(spend[c] ?? 0) > 0 && <button className="glass-btn" style={{ padding: '2px 4px', fontSize: 10 }} onClick={() => rmSpend(c)}>−</button>}
               </span>
             ))}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-            <span className="civ-lbl">Trésor :</span>
-            <input type="range" min={0} max={Math.max(0, maxTreasury)} value={treasuryUsed} onChange={(e) => setTreasury(+e.target.value)} style={{ width: 110 }} disabled={maxTreasury <= 0} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: 11 }}>
+            <span style={{ color: 'var(--civ-stone-muted)' }}>Trésor :</span>
+            <input type="range" min={0} max={Math.max(0, maxTreasury)} value={treasuryUsed} onChange={(e) => setTreasury(+e.target.value)} style={{ width: 100 }} disabled={maxTreasury <= 0} />
             <b>{treasuryUsed}</b>
-            <span className="civ-lbl">· payé <b style={{ color: canBuy ? '#2e6b3a' : '#8a3b12' }}>{paid}</b> / {cost}</span>
-          </div>
-          <div style={{ display: 'flex', gap: 4 }}>
-            <button className="civ-btn" disabled={!canBuy} onClick={buy}>{canBuy ? `Acheter (${basket.length})` : `Manque ${cost - paid}`}</button>
-            <button className="civ-btn" onClick={() => { setSel([]); setSpend({}); setTreasury(0); }}>Vider panier</button>
+            <span style={{ color: 'var(--civ-stone-muted)' }}>· payé <b style={{ color: canBuy ? '#86efac' : '#f87171' }}>{paid}</b> / {cost}</span>
+            <button className={`glass-btn ${canBuy ? 'glass-btn--primary' : ''}`} style={{ padding: '3px 10px', fontSize: 10 }} disabled={!canBuy} onClick={buy}>{canBuy ? `Acheter (${basket.length})` : `Manque ${cost - paid} pts`}</button>
+            <button className="glass-btn" style={{ padding: '3px 8px', fontSize: 10 }} onClick={() => { setSel([]); setSpend({}); setTreasury(0); }}>Vider</button>
           </div>
         </div>
       )}
-      <button className="civ-btn" onClick={done}>Terminer les acquisitions (passer)</button>
+
+      <button className="glass-btn glass-btn--primary" style={{ alignSelf: 'flex-start', marginTop: 2, padding: '6px 14px' }} onClick={done}>
+        Terminer les acquisitions (passer) ➔
+      </button>
+
+      {detailId && (
+        <AdvanceDetailModal
+          id={detailId}
+          onClose={() => setDetailId(null)}
+          owned={owned.has(detailId)}
+          creditDiscount={creditFor(detailId)}
+        />
+      )}
     </div>
   );
 }

@@ -1,18 +1,21 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Rng } from 'digital-boardgame-framework';
-import { adapter, createGame } from '../engine/index.js';
+import { adapter } from '../engine/index.js';
 import type { Action, GameState, PlayerId } from '../engine/types.js';
-import { civById } from '../data/index.js';
 import { HeuristicAI } from '../ai/heuristic.js';
 import { useMapArt } from './mapArt.js';
 import type { LocalSaveFile, LocalSessionConfig, ControllerType } from '../local/types.js';
 import { createLocalSession } from '../local/session.js';
 import { saveLocalGame, clearLocalSave } from '../local/persistence.js';
-import { AreaPeekProvider, Board, Minimap, MapArtBanner, nationFocusArea, scrollBoardTo, phaseLabel } from './components/board/index.js';
-import { StatusPanel, UpcomingCalamities, GameOverSummary, TurnOrderTabs, ViewNav, PlayerHandoffModal, type View } from './components/navigation/index.js';
-import { ActionList, MovementControls, useMovementPlanner } from './components/phases/index.js';
+import { AreaPeekProvider, Board, MapArtBanner, nationFocusArea, scrollBoardTo } from './components/board/index.js';
+import { TurnOrderTabs, PlayerHandoffModal, ImperialTopBar, DecisionRibbon, CodexOverlayModal, type View } from './components/navigation/index.js';
+import { ZonePopover } from './components/hud/ZonePopover.js';
+import { useMovementPlanner } from './components/phases/index.js';
 import { CombatModal, CalamityModal, LocalDiagnosticModal } from './components/modals/index.js';
-import { InfoView } from './components/views/index.js';
+import { CardHand } from './cards/CardHand.js';
+import { PhaseBanner } from './components/cinematic/PhaseBanner.js';
+import { useFocusMode } from './hooks/useFocusMode.js';
+import { useAnimatedMove } from './hooks/useAnimatedMove.js';
 
 export * from './components/board/index.js'; export * from './components/navigation/index.js';
 export * from './components/phases/index.js'; export * from './components/modals/index.js'; export * from './components/views/index.js';
@@ -27,20 +30,13 @@ export interface AppProps {
 }
 
 export default function App({ sessionConfig, initialSave, onExitToMenu }: AppProps) {
-  const config = useMemo<LocalSessionConfig>(() => {
-    if (initialSave) return initialSave.config;
-    if (sessionConfig) return sessionConfig;
-    return {
-      privacyMode: 'handoff',
-      aiPace: 'readable',
-      seats: DEFAULT_CIVS.map((c, i) => ({ civilizationId: c, controller: i === 0 ? 'human' : 'heuristic-ai' })),
-    };
+  const config = useMemo<LocalSessionConfig>(() => initialSave?.config ?? sessionConfig ?? {
+    privacyMode: 'handoff',
+    aiPace: 'readable',
+    seats: DEFAULT_CIVS.map((c, i) => ({ civilizationId: c, controller: i === 0 ? 'human' : 'heuristic-ai' })),
   }, [sessionConfig, initialSave]);
 
-  const [state, setState] = useState<GameState>(() => {
-    if (initialSave) return initialSave.state;
-    return createLocalSession(config);
-  });
+  const [state, setState] = useState<GameState>(() => initialSave ? initialSave.state : createLocalSession(config));
   const [view, setView] = useState<View>('map');
   const [selectedArea, setSelectedArea] = useState<string | null>(null);
   const [rejected, setRejected] = useState<string | null>(null);
@@ -52,6 +48,8 @@ export default function App({ sessionConfig, initialSave, onExitToMenu }: AppPro
   const rng = useRef(new Rng(Date.now() & 0xffff));
   const boardRef = useRef<HTMLDivElement>(null);
   const mapArt = useMapArt();
+  const isIdle = useFocusMode();
+  useAnimatedMove(state);
 
   const seats = useMemo(() => Object.fromEntries(config.seats.map((s) => [s.civilizationId, s.controller])) as Record<PlayerId, ControllerType>, [config]);
   const seatMap = useMemo(() => new Map(config.seats.map((s) => [s.civilizationId, s])), [config]);
@@ -116,14 +114,22 @@ export default function App({ sessionConfig, initialSave, onExitToMenu }: AppPro
     setSelectedArea((prev) => (prev === area ? null : area));
   }, [inMovement, planner, state.pendingStart, state.phase, actor, seats, legal, apply]);
 
-  useEffect(() => {
-    if (view !== 'map') return;
-    const target = inMovement && planner.origin ? planner.origin : (actor ? nationFocusArea(state, actor) : null);
-    const t = setTimeout(() => scrollBoardTo(boardRef.current, target), 60);
-    return () => clearTimeout(t);
-  }, [actor, state.phase, view, inMovement, planner.origin]);
-
   const focus = actor ?? state.seating[0]!;
+
+  const handleFocusMine = useCallback(() => {
+    const target = inMovement && planner.origin ? planner.origin : (actor ? nationFocusArea(state, actor) : null);
+    scrollBoardTo(boardRef.current, target);
+  }, [inMovement, planner.origin, actor, state]);
+
+  const handleFocusAll = useCallback(() => {
+    if (boardRef.current) {
+      boardRef.current.scrollTo({
+        left: (boardRef.current.scrollWidth - boardRef.current.clientWidth) / 2,
+        top: (boardRef.current.scrollHeight - boardRef.current.clientHeight) / 2,
+        behavior: 'smooth',
+      });
+    }
+  }, []);
 
   return (
     <AreaPeekProvider>
@@ -134,57 +140,49 @@ export default function App({ sessionConfig, initialSave, onExitToMenu }: AppPro
         {handoffOpen && actor && (
           <PlayerHandoffModal actor={actor} seat={seatMap.get(actor)} onReveal={() => setHandoffOpen(false)} onSwitchToOpenTable={() => { setPrivacy('open-table'); setHandoffOpen(false); }} />
         )}
+        <PhaseBanner phase={state.phase} turn={state.turn} />
+        <CodexOverlayModal view={view} onClose={() => setView('map')} onSelectView={setView} state={state} focus={focus} />
+        <ImperialTopBar state={state} actor={actor} focus={focus} onFocusMine={handleFocusMine} onFocusAll={handleFocusAll} onOpenDiag={() => setShowDiag(true)} onExit={() => onExitToMenu ? onExitToMenu() : location.reload()} isIdle={isIdle} />
 
-        <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-          {view === 'map' ? (
-            <div ref={boardRef} style={{ flex: 1, position: 'relative', overflow: 'auto', background: '#0b1922', display: 'flex' }}>
-              <Board
-                state={inMovement ? planner.previewState : state} selected={inMovement ? planner.origin : selectedArea}
-                onSelect={handleSelectArea} highlight={activeHighlights} origin={inMovement ? planner.origin : null}
-                moved={inMovement ? planner.moved : undefined} zoomTo={inMovement ? planner.origin : null} art={mapArt.art}
-              />
-              <MapArtBanner mapArt={mapArt} />
-            </div>
-          ) : (
-            <div style={{ flex: 1, overflow: 'auto', background: '#17130e' }}>
-              <InfoView view={view} state={state} focus={focus} />
-            </div>
-          )}
-
-          <div style={{ width: 340, display: 'flex', flexDirection: 'column', background: '#14100c', borderLeft: '2px solid #5a3c1c' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, borderBottom: '1px solid #4a3015', padding: 6 }}>
-              <StatusPanel state={state} id={focus} />
-              <ViewNav currentView={view} onSelectView={setView} onExit={() => onExitToMenu ? onExitToMenu() : location.reload()} />
-            </div>
-
-            <div style={{ flex: 1, padding: 8, display: 'flex', flexDirection: 'column', gap: 6, overflowY: 'auto' }}>
-              {result ? <GameOverSummary state={state} result={result} /> : (
-                <>
-                  <div className="civ-msg" style={{ padding: '6px 10px', textAlign: 'center' }}>
-                    {actor ? <><b style={{ color: civById.get(actor)?.color }}>{civById.get(actor)?.name}</b> — {state.pendingStart ? 'choisit sa zone de départ' : state.ninthStack?.awaiting ? 'peut acheter dans la 9e pile' : phaseLabel(state)}</> : 'Résolution…'}
-                  </div>
-                  {rejected && <div className="civ-msg" style={{ background: 'rgba(120,42,42,0.5)', border: '1px solid #c66' }}>⚠ {rejected}</div>}
-                  <UpcomingCalamities state={state} />
-                  {actor && seats[actor] === 'human'
-                    ? (inMovement ? <MovementControls planner={planner} /> : <ActionList legal={legal} selectedArea={selectedArea} phase={state.phase} onApply={apply} state={state} actor={actor} />)
-                    : <div className="civ-lbl" style={{ textAlign: 'center', padding: 8 }}>Tour de l'IA en cours…</div>}
-                </>
-              )}
-            </div>
-
-            <div style={{ borderTop: '1px solid #4a3015', padding: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontWeight: 800, fontSize: 12, color: '#ffd23f' }}>{phaseLabel(state).toUpperCase()}</span>
-                <span className="civ-lbl">Tour {state.turn}</span>
-              </div>
-              <Minimap boardRef={boardRef} onJumpToMap={() => setView('map')} />
-              <button className="civ-btn" style={{ fontSize: 11, padding: '3px 8px', marginTop: 2 }} onClick={() => setShowDiag(true)}>
-                🛠 Diagnostic local
-              </button>
-            </div>
-          </div>
+        {/* Central Map Board */}
+        <div ref={boardRef} style={{ flex: 1, position: 'relative', overflow: 'auto', background: '#0b1922', display: 'flex' }}>
+          <Board
+            state={inMovement ? planner.previewState : state}
+            selected={inMovement ? planner.origin : selectedArea}
+            onSelect={handleSelectArea}
+            highlight={activeHighlights}
+            origin={inMovement ? planner.origin : null}
+            moved={inMovement ? planner.moved : undefined}
+            zoomTo={inMovement ? planner.origin : null}
+            art={mapArt.art}
+          />
+          <MapArtBanner mapArt={mapArt} />
+          <ZonePopover areaId={selectedArea} state={state} onClose={() => setSelectedArea(null)} />
         </div>
 
+        {actor && seats[actor] === 'human' && state.phase !== 'trade' && (
+          <CardHand
+            hand={state.players[actor]?.hand ?? {}}
+            defaultExpanded={!!state.pendingDiscard}
+          />
+        )}
+
+        <DecisionRibbon
+          state={state}
+          actor={actor}
+          focus={focus}
+          isHuman={!!actor && seats[actor] === 'human'}
+          legal={legal}
+          selectedArea={selectedArea}
+          inMovement={inMovement}
+          planner={planner}
+          rejected={rejected}
+          onApply={apply}
+          onOpenCodex={(v: View) => setView(v)}
+          activeCodex={view === 'map' ? null : view}
+          result={result}
+          isIdle={isIdle}
+        />
         <TurnOrderTabs state={state} actor={actor} seats={seats as Record<PlayerId, 'human' | 'ai'>} />
       </div>
     </AreaPeekProvider>

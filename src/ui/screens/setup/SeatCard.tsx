@@ -29,51 +29,52 @@ export function SeatCard({
   return (
     <div
       style={{
-        background: '#1c1611',
-        border: '1px solid #4a341e',
+        background: 'rgba(16, 21, 28, 0.85)',
+        backdropFilter: 'var(--civ-blur-sm)',
+        border: '1px solid rgba(212, 175, 55, 0.25)',
         borderRadius: 8,
         overflow: 'hidden',
-        boxShadow: '0 3px 10px rgba(0,0,0,0.4)',
+        boxShadow: 'var(--civ-glass-shadow)',
         display: 'flex',
         flexDirection: 'column',
       }}
     >
-      {/* En-tête coloré avec contraste garanti */}
+      {/* En-tête de siège d'expédition */}
       <div
         style={{
-          background: `linear-gradient(90deg, ${civColor} 0%, #281d14 100%)`,
-          padding: '7px 12px',
+          background: `linear-gradient(90deg, ${civColor} 0%, rgba(20, 26, 36, 0.95) 100%)`,
+          padding: '8px 12px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          borderBottom: '1px solid #5a3c1c',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 11, color: '#ffd23f', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+          <span style={{ fontSize: 11, color: 'var(--civ-gold-light)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.6 }}>
             Siège {idx + 1}
           </span>
           <span
             style={{
               fontSize: 13,
-              fontWeight: 900,
+              fontWeight: 800,
+              fontFamily: 'var(--civ-font-display)',
               color: '#ffffff',
-              textShadow: '0 1px 3px rgba(0,0,0,0.85)',
-              letterSpacing: 0.5,
+              letterSpacing: 0.8,
             }}
           >
             {civNameFr.toUpperCase()}
           </span>
         </div>
 
-        {/* Sélecteur de contrôleur type boutons-onglets */}
+        {/* Sélecteur de contrôleur */}
         <div style={{ display: 'flex', background: 'rgba(0,0,0,0.5)', padding: 2, borderRadius: 5, gap: 2 }}>
           <button
             type="button"
             onClick={() => onUpdate(idx, { controller: 'human' })}
             style={{
-              background: seat.controller === 'human' ? '#e69830' : 'transparent',
-              color: seat.controller === 'human' ? '#000' : '#d2c4b0',
+              background: seat.controller === 'human' ? 'var(--civ-gold-base)' : 'transparent',
+              color: seat.controller === 'human' ? '#000' : 'var(--civ-stone-muted)',
               border: 'none',
               borderRadius: 3,
               fontSize: 11,
@@ -89,8 +90,8 @@ export function SeatCard({
             type="button"
             onClick={() => onUpdate(idx, { controller: 'heuristic-ai' })}
             style={{
-              background: seat.controller === 'heuristic-ai' ? '#6e5028' : 'transparent',
-              color: seat.controller === 'heuristic-ai' ? '#ffd23f' : '#b2a490',
+              background: seat.controller === 'heuristic-ai' ? 'rgba(50, 65, 88, 0.8)' : 'transparent',
+              color: seat.controller === 'heuristic-ai' ? 'var(--civ-gold-light)' : 'var(--civ-stone-muted)',
               border: 'none',
               borderRadius: 3,
               fontSize: 11,
@@ -106,10 +107,10 @@ export function SeatCard({
       </div>
 
       {/* Corps de la carte */}
-      <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
         <div>
-          <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#c8ad7f', marginBottom: 3 }}>
-            Civilisation :
+          <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--civ-gold-base)', marginBottom: 4 }}>
+            Civilisation antique :
           </label>
           <select
             value={seat.civilizationId}
@@ -117,11 +118,11 @@ export function SeatCard({
             style={{
               width: '100%',
               boxSizing: 'border-box',
-              background: '#2c2217',
-              color: '#f0e6d2',
-              border: '1px solid #7a5020',
-              borderRadius: 4,
-              padding: '5px 8px',
+              background: 'rgba(22, 28, 38, 0.85)',
+              color: 'var(--civ-marble)',
+              border: '1px solid var(--civ-gold-border-subtle)',
+              borderRadius: 6,
+              padding: '6px 10px',
               fontSize: 12,
               fontWeight: 600,
             }}
@@ -151,8 +152,8 @@ export function SeatCard({
 
         {seat.controller === 'human' ? (
           <div>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#c8ad7f', marginBottom: 3 }}>
-              Nom du joueur :
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--civ-gold-base)', marginBottom: 4 }}>
+              Nom de l'archonte / joueur :
             </label>
             <input
               type="text"
@@ -162,17 +163,17 @@ export function SeatCard({
               style={{
                 width: '100%',
                 boxSizing: 'border-box',
-                background: '#2c2217',
-                color: '#fff',
-                border: '1px solid #7a5020',
-                borderRadius: 4,
-                padding: '5px 8px',
+                background: 'rgba(22, 28, 38, 0.85)',
+                color: 'var(--civ-marble)',
+                border: '1px solid var(--civ-gold-border-subtle)',
+                borderRadius: 6,
+                padding: '6px 10px',
                 fontSize: 12,
               }}
             />
           </div>
         ) : (
-          <div style={{ fontSize: 11, color: '#9d8d7b', fontStyle: 'italic', padding: '4px 0' }}>
+          <div style={{ fontSize: 11, color: 'var(--civ-stone-muted)', fontStyle: 'italic', padding: '4px 0' }}>
             Adversaire automatisé par l'IA Heuristique
           </div>
         )}

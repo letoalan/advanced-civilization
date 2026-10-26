@@ -1,3 +1,4 @@
+import './theme/theme.css';
 import { Component, StrictMode, useEffect, useState, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { UpdateBanner, SplashScreen } from 'digital-boardgame-framework/client';

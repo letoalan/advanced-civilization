@@ -93,3 +93,46 @@ Les vues secondaires s'ouvrent en superposition élégante façon parchemins dé
 2. **Jalon 2 (HUD & Disposition) :** Déplacement du panneau latéral droit vers le ruban d'action inférieur et mise en place du bandeau de statut supérieur en bronze.
 3. **Jalon 3 (Pièces & Symboles) :** Remplacement des pions carrés, cités octogonales et navires emojis par les composants SVG en relief avec ombres portées.
 4. **Jalon 4 (Écrans Codex) :** Habillage de l'arbre des progrès et du registre AST selon la charte « Plateau Deluxe ».
+
+---
+
+## 6. Synthèse de l'Implémentation Réalisée (Glass HUD + Cartes en Main + Mode Cinématique)
+
+- **Fondations & Design System :** `src/ui/theme/theme.css` (tokens bronze/or/ardoise, glassmorphism `glass-panel`, `glass-btn`, `glass-dock`, keyframes, support `prefers-reduced-motion`), typographie *Cinzel*, jeu d'icônes SVG haute précision (`src/ui/theme/icons/`).
+- **Glass Top HUD :** `GlassTopBar` flottante avec `CivBadge` (médaillon héraldique, nom, ère, progression AST), `ResourceCaskets` avec compteurs animés (`useAnimatedNumber`), `CalamityAlertBadge` avec alerte vibrante et menu déroulant, boutons de recentrage et paramètres.
+- **Action Dock Flottant :** `ActionDock` centré en bas de l'écran, avec pastille de phase active, indicateur de joueur actif, contrôles contextuels, bouton maître doré « Terminer la phase » et raccourcis Codex.
+- **Popover de Zone :** `ZonePopover` ancré à la zone cliquée affichant le statut maritime/terrestre, capacité de population, sites de cité, volcans, plaines inondables et garnison présente.
+- **Cartes en Main & Drag & Drop :** `CardHand` avec éventail interactif des cartes de marchandises et calamités détenues, survol ascendant avec zoom et ombre portée, dépliage/repliage animé, et hook de glisser-déposer natif `useCardDrag` sans dépendance externe avec fantôme de carte.
+- **Table de Négociation & Modularisation :** `OfferBuilder` et `TradeControls` modernisés avec zones de dépôt `civ-drop-zone` et scindés en composants modulaires de moins de 200 lignes (`VisualBundleFace`, `WantsPicker`, `CompletedTradeHistory`).
+- **Mode Cinématique & Audio :** `PhaseBanner` avec bandeau or plein écran à chaque transition de phase, secousses lors des calamités, et `SoundManager` natif (Web Audio API synthétisant pièces, cartes, tonnerre et fanfares).
+- **Mode Focus & Accessibilité :** Atténuation automatique du HUD lors de l'inactivité sur la carte (`useFocusMode`), modal de réglages complet (`SettingsModal`), respect intégral de la règle des 200 lignes par fichier (250/250 fichiers conformes) et 315/315 tests passants.
+
+---
+
+## 7. Direction Artistique « Musée Archéologique » (MANN Napoli & Acropolis Museum Athens)
+
+Pour quitter définitivement l'esthétique cartonné/marronnasse des jeux de plateau des années 80 (Avalon Hill) et offrir une expérience digne des grands portails muséaux méditerranéens (Museo Archeologico Nazionale di Napoli, Musée de l'Acropole d'Athènes) :
+
+- **Typographies Lapidaires & Galerie :**
+  - Titres et en-têtes : *Cinzel* et *Cormorant Garamond* (inscriptions lapidaires romaines et grecques, gravures antiques).
+  - Textes d'interface et cartels : *Outfit* (sans-serif géométrique contemporain, lisibilité de signalétique muséale).
+- **Palette Minérale & Matériaux Nobles :**
+  - Fonds et plinthes : Obsidienne / Basalte profond (`#0a0d12`, `#10141b`, `#151a23`), abolissant les anciens bruns plastiques (`#24180d`, `#382816`).
+  - Accents et bordures : Feuille d'or antique patinée (`#d4af37`), liserés hairlines or (`rgba(212, 175, 55, 0.35)`).
+  - Textes : Marbre pentélique (`#f7f4ec`), vélin antique (`#e8e0d0`), gris ardoise (`#959fad`).
+  - Époques AST : Patines archéologiques de stéatite (`#384353`), bronze archaïque (`#225d7e`), malachite (`#2b6a50`), cuivre/fer (`#875314`) et or impérial (`#b85d18`).
+- **Cartels d'Exposition Archéologique (`.museum-cartel`) :**
+  - Tooltips de survol et popovers structurés comme de véritables cartels de vitrine (typographie fine, petits-titres or en capitales, terminologie en français : *Bassin maritime*, *Haute mer*, *Terres libres*, *Site de Cité naturel*, etc.).
+- **Socle Vitrine Architectural (`ActionDock`) :**
+  - Refonte du dock inférieur en un plinth compact à deux étages en verre fumé (`border-radius: 14px`, suppression de la déformation en œuf `9999px`).
+  - Suppression de la collision avec la frise d'ordre du tour (`TurnOrderTabs`), ancrée de façon autonome en bas à gauche.
+  - Bouton maître unique en médaille dorée impériale sans doublon lors des déplacements.
+- **Cartographie & Level of Detail (LOD) :**
+  - Cadrage automatique instantané de la caméra sur la capitale de la nation active dès l'inauguration de la partie.
+  - Décluttering à faible zoom : masquage des micro-provinces et des pilules de capacité numériques à l'échelle méditerranéenne globale, ne les révélant qu'au zoom tactique ou au survol.
+- **Portails & Modales :**
+  - Écran d'accueil (`HomeScreen`) transformé en portail d'exposition numérique (*« L'Aube des Empires de la Méditerranée Antique »*).
+  - Écran de configuration (`LocalSetupScreen`) structuré en *« Organisation de l'Expédition »* avec cartes de sièges en marbre sombre.
+  - Le Grand Codex (`CodexOverlayModal`) renommé en *« Archives & Collections Impériales »*.
+  - Rideaux de transition (`PlayerHandoffModal`) stylisés en transmission d'audience impériale.
+

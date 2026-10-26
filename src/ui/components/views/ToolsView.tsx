@@ -1,80 +1,158 @@
 import { useState } from 'react';
-import { advances as ALL_ADVANCES, advanceById, civById, ADVANCE_EFFECTS } from '../../../data/index.js';
-import { advancesFaceValue } from '../../../engine/helpers.js';
+import { advances as ALL_ADVANCES, civById } from '../../../data/index.js';
+import { advancesFaceValue, creditTowards } from '../../../engine/helpers.js';
 import type { GameState, PlayerId } from '../../../engine/types.js';
+import { AdvanceCard } from '../../cards/AdvanceCard.js';
+import { AdvanceDetailModal } from './AdvanceDetailModal.js';
 
 export const GROUP_COLOR: Record<string, string> = {
-  Crafts: '#d98a3a', Arts: '#c0504d', Civics: '#8064a2', Sciences: '#4f9a52', Religion: '#3a8fc7',
+  Crafts: '#d98a3a',
+  Sciences: '#4f9a52',
+  Arts: '#c0504d',
+  Civics: '#8064a2',
+  Religion: '#3a8fc7',
 };
 
-function creditSummary(id: string): string {
-  const a = advanceById.get(id);
-  if (!a) return '';
-  const parts: string[] = [];
-  for (const [g, v] of Object.entries(a.credits.byGroup)) parts.push(`+${v} aux autres ${g}`);
-  for (const [c, v] of Object.entries(a.credits.byCard)) parts.push(`+${v} à ${advanceById.get(c)?.name ?? c}`);
-  return parts.join(', ');
-}
-
-export function AdvanceTip({ id }: { id: string }) {
-  const a = advanceById.get(id)!;
-  const credits = creditSummary(id);
-  return (
-    <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: 3, zIndex: 60, width: 270, background: '#1a160f', border: '1px solid #c79a3a', borderRadius: 6, padding: 10, boxShadow: '0 6px 24px #000', color: '#eee', fontSize: 12, lineHeight: 1.5, textAlign: 'left', whiteSpace: 'normal' }}>
-      <div style={{ fontWeight: 800, color: '#ffd98a' }}>{a.name}</div>
-      <div style={{ color: '#9a8d6a' }}>{a.groups.join(' / ')} · coût {a.cost}{a.prerequisites?.length ? ` · requis: ${a.prerequisites.map((p) => advanceById.get(p)?.name ?? p).join(', ')}` : ''}</div>
-      <div style={{ margin: '6px 0', color: '#ece4d2' }}>{ADVANCE_EFFECTS[id] ?? ''}</div>
-      {credits && <div style={{ color: '#9ab8c8' }}>Réductions : {credits}</div>}
-    </div>
-  );
-}
-
-function AdvanceChip({ id, owned }: { id: string; owned: boolean }) {
-  const a = advanceById.get(id)!;
-  const [hover, setHover] = useState(false);
-  return (
-    <div
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      style={{ position: 'relative', zIndex: hover ? 10 : undefined, padding: 6, borderRadius: 4, border: '1px solid #555', borderLeft: `5px solid ${GROUP_COLOR[a.groups[0]!] ?? '#999'}`, background: owned ? '#2e6b3a' : '#222', cursor: 'help' }}
-    >
-      <div style={{ opacity: owned ? 1 : 0.6 }}>
-        <b>{a.name}</b><br />
-        <small>{a.groups.join('/')} · {a.cost}</small>
-      </div>
-      {hover && <AdvanceTip id={id} />}
-    </div>
-  );
-}
+const GROUP_LABEL_FR: Record<string, string> = {
+  Crafts: 'Métiers',
+  Sciences: 'Sciences',
+  Arts: 'Arts',
+  Civics: 'Civisme',
+  Religion: 'Religion',
+};
 
 export function ToolsView({ state, focus }: { state: GameState; focus: PlayerId }) {
-  const owned = new Set(state.players[focus]!.advances);
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
+  const [detailId, setDetailId] = useState<string | null>(null);
+
+  const p = state.players[focus]!;
+  const owned = new Set(p.advances);
   const groupNames = Object.keys(GROUP_COLOR);
   const ownedByGroup = (g: string) => ALL_ADVANCES.filter((a) => owned.has(a.id) && (a.groups as string[]).includes(g)).length;
   const represented = groupNames.filter((g) => ownedByGroup(g) > 0).length;
-  const totalValue = advancesFaceValue(state.players[focus]!.advances);
+  const totalValue = advancesFaceValue(p.advances);
+
+  const filteredAdvances = selectedGroup
+    ? ALL_ADVANCES.filter((a) => (a.groups as string[]).includes(selectedGroup))
+    : ALL_ADVANCES;
+
+  const creditFor = (id: string) => creditTowards(p.advances, id);
 
   return (
-    <div style={{ padding: 16, color: '#eee' }}>
-      <h2 style={{ marginTop: 0 }}>Progrès de Civilisation — {civById.get(focus)?.name}</h2>
-      <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginBottom: 8 }}>
-        <span style={{ fontSize: 22, fontWeight: 800, color: '#ffd98a' }}>{totalValue}</span>
-        <span className="civ-lbl" style={{ color: '#cdc4ad' }}>valeur totale en points (§33.25)</span>
-      </div>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 8 }}>
-        {groupNames.map((g) => (
-          <span key={g} style={{ fontSize: 12, padding: '2px 8px', borderRadius: 10, border: `1px solid ${GROUP_COLOR[g]}`, background: ownedByGroup(g) > 0 ? GROUP_COLOR[g] : 'transparent', color: ownedByGroup(g) > 0 ? '#1a1a1a' : '#cdc4ad', fontWeight: 700 }}>
-            {g} · {ownedByGroup(g)}
+    <div style={{ color: 'var(--civ-marble)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {/* Header with Title and Civilization Points */}
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', borderBottom: '1px solid var(--civ-gold-border)', paddingBottom: 8 }}>
+        <div>
+          <h2 style={{ margin: 0, fontFamily: 'var(--civ-font-display)', letterSpacing: 1.2, color: 'var(--civ-gold-light)', fontSize: 16, textTransform: 'uppercase' }}>
+            🏛️ Galerie des Progrès — {civById.get(focus)?.name}
+          </h2>
+          <span style={{ fontSize: 11, color: 'var(--civ-stone-muted)' }}>
+            {owned.size} progrès acquis sur {ALL_ADVANCES.length}
           </span>
-        ))}
-        <span className="civ-lbl" style={{ color: represented >= 5 ? '#7fd17f' : '#ffd23f', fontWeight: 700 }}>
-          {represented}/5 groupes (l’Âge du Fer exige les 5, §33.24)
-        </span>
+        </div>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'baseline' }}>
+          <span style={{ fontSize: 22, fontWeight: 900, color: 'var(--civ-gold-light)', textShadow: '0 0 12px var(--civ-gold-glow)' }}>
+            {totalValue}
+          </span>
+          <span style={{ fontSize: 11, color: 'var(--civ-stone-muted)' }}>points A.S.T. (§33.25)</span>
+        </div>
       </div>
-      <div className="civ-lbl" style={{ color: '#b9ad8e', marginBottom: 8 }}>Survolez un progrès pour voir ses effets et réductions.</div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 6, maxWidth: 780 }}>
-        {ALL_ADVANCES.map((a) => <AdvanceChip key={a.id} id={a.id} owned={owned.has(a.id)} />)}
+
+      {/* Group Filter Tabs and Iron Age Requirement Meter */}
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+        <button
+          onClick={() => setSelectedGroup(null)}
+          className={`glass-btn ${selectedGroup === null ? 'glass-btn--primary' : ''}`}
+          style={{ padding: '3px 9px', fontSize: 11 }}
+        >
+          Tous ({ALL_ADVANCES.length})
+        </button>
+
+        {groupNames.map((g) => {
+          const isAct = selectedGroup === g;
+          const count = ownedByGroup(g);
+          return (
+            <button
+              key={g}
+              onClick={() => setSelectedGroup(isAct ? null : g)}
+              className="glass-btn"
+              style={{
+                fontSize: 11,
+                padding: '3px 9px',
+                borderColor: isAct ? 'var(--civ-gold-base)' : undefined,
+                color: isAct ? 'var(--civ-gold-light)' : count > 0 ? 'var(--civ-marble)' : 'var(--civ-stone-muted)',
+                background: isAct ? 'rgba(40, 52, 70, 0.95)' : undefined,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+              }}
+            >
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: GROUP_COLOR[g] }} />
+              <span>{GROUP_LABEL_FR[g] ?? g}</span>
+              <span style={{ opacity: 0.8, fontSize: 10 }}>({count})</span>
+            </button>
+          );
+        })}
+
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 11 }}>
+          <span style={{ color: 'var(--civ-stone-muted)' }}>Âge du Fer :</span>
+          <b style={{ color: represented >= 5 ? '#86efac' : 'var(--civ-gold-base)' }}>
+            {represented}/5 domaines
+          </b>
+        </div>
       </div>
+
+      {/* Visual Cards Grid */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+          gap: 12,
+          maxHeight: 'min(64vh, 560px)',
+          overflowY: 'auto',
+          padding: '6px 4px 12px 2px',
+        }}
+        className="civ-custom-scrollbar"
+      >
+        {filteredAdvances.map((a) => {
+          const isOwned = owned.has(a.id);
+          const disc = creditFor(a.id);
+          const effCost = Math.max(0, a.cost - disc);
+
+          return (
+            <div
+              key={a.id}
+              onClick={() => setDetailId(a.id)}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                cursor: 'pointer',
+                transition: 'transform 0.16s ease',
+              }}
+              className="hover:scale-105"
+            >
+              <AdvanceCard
+                id={a.id}
+                owned={isOwned}
+                effectiveCost={effCost}
+                width={120}
+                height={175}
+              />
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Modal for detailed inspection */}
+      {detailId && (
+        <AdvanceDetailModal
+          id={detailId}
+          onClose={() => setDetailId(null)}
+          owned={owned.has(detailId)}
+          creditDiscount={creditFor(detailId)}
+        />
+      )}
     </div>
   );
 }

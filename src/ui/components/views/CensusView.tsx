@@ -20,26 +20,30 @@ export function CensusView({ state }: { state: GameState }) {
   const head: CSSProperties = { ...cell, fontWeight: 700, color: '#cdc4ad' };
 
   return (
-    <div style={{ padding: 16, color: '#eee' }}>
-      <h2 style={{ marginTop: 0 }}>Recensement &amp; Classement (Census)</h2>
-      <div className="civ-lbl" style={{ color: '#b9ad8e', marginBottom: 10, maxWidth: 640 }}>
+    <div style={{ color: 'var(--civ-marble)' }}>
+      <h2 style={{ marginTop: 0, fontFamily: 'var(--civ-font-display)', letterSpacing: 1.2, color: 'var(--civ-gold-light)', fontSize: 17, textTransform: 'uppercase' }}>
+        🏛️ Recensement des Empires — Tabula Censoria
+      </h2>
+      <div className="civ-lbl" style={{ color: 'var(--civ-stone-muted)', marginBottom: 14, maxWidth: 640 }}>
         Informations publiques pour chaque nation. Seul le contenu des cartes de commerce reste secret (§27.4).
       </div>
-      <table style={{ fontSize: 13, borderCollapse: 'collapse' }}>
-        <tbody>
-          <tr style={{ textAlign: 'right' }}>
-            <th style={{ ...head, textAlign: 'left' }}>#</th>
-            <th style={{ ...head, textAlign: 'left' }}>Nation</th>
-            <th style={head}>Pop</th>
-            <th style={head}>Cités</th>
-            <th style={head}>Cartes</th>
-            <th style={head}>Progrès</th>
-            <th style={head}>Stock</th>
-            <th style={head}>Trésor</th>
+      <table style={{ fontSize: 12, borderCollapse: 'collapse', width: '100%', maxWidth: 700 }}>
+        <thead>
+          <tr style={{ textAlign: 'right', borderBottom: '1px solid var(--civ-gold-border)' }}>
+            <th style={{ ...head, textAlign: 'left', color: 'var(--civ-gold-base)' }}>#</th>
+            <th style={{ ...head, textAlign: 'left', color: 'var(--civ-gold-base)' }}>Nation</th>
+            <th style={{ ...head, color: 'var(--civ-gold-base)' }}>Pop</th>
+            <th style={{ ...head, color: 'var(--civ-gold-base)' }}>Cités</th>
+            <th style={{ ...head, color: 'var(--civ-gold-base)' }}>Cartes</th>
+            <th style={{ ...head, color: 'var(--civ-gold-base)' }}>Progrès</th>
+            <th style={{ ...head, color: 'var(--civ-gold-base)' }}>Stock</th>
+            <th style={{ ...head, color: 'var(--civ-gold-base)' }}>Trésor</th>
           </tr>
+        </thead>
+        <tbody>
           {rows.map((r, i) => (
-            <tr key={r.id} style={{ borderTop: '1px solid #333' }}>
-              <td style={{ ...cell, textAlign: 'left' }}>{i + 1}</td>
+            <tr key={r.id} style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+              <td style={{ ...cell, textAlign: 'left', color: 'var(--civ-stone-muted)' }}>{i + 1}</td>
               <td style={{ ...cell, textAlign: 'left', color: civById.get(r.id)?.color, fontWeight: 700 }}>
                 {civById.get(r.id)?.name}
               </td>
@@ -53,15 +57,17 @@ export function CensusView({ state }: { state: GameState }) {
           ))}
         </tbody>
       </table>
-      <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <div className="civ-lbl" style={{ color: '#cdc4ad', fontWeight: 700 }}>Progrès possédés</div>
+      <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ color: 'var(--civ-gold-light)', fontWeight: 700, fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+          Progrès enregistrés au cadastre
+        </div>
         {rows.map((r) => (
           <div key={r.id} style={{ lineHeight: 1.9 }}>
             <span style={{ color: civById.get(r.id)?.color, fontWeight: 700, marginRight: 8 }}>
-              {civById.get(r.id)?.name}
+              {civById.get(r.id)?.name} :
             </span>
             {r.advances.length === 0 ? (
-              <span className="civ-lbl" style={{ color: '#8a8270' }}>aucun</span>
+              <span className="civ-lbl" style={{ color: 'var(--civ-stone-muted)', fontStyle: 'italic' }}>aucun</span>
             ) : (
               [...r.advances].sort().map((aid) => (
                 <span
@@ -69,11 +75,12 @@ export function CensusView({ state }: { state: GameState }) {
                   style={{
                     display: 'inline-block',
                     fontSize: 11,
-                    padding: '1px 6px',
-                    margin: '0 4px 2px 0',
-                    borderRadius: 3,
-                    border: '1px solid #555',
-                    background: '#222',
+                    padding: '2px 8px',
+                    margin: '0 4px 3px 0',
+                    borderRadius: 4,
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    background: 'rgba(25, 32, 44, 0.85)',
+                    color: 'var(--civ-marble)',
                   }}
                 >
                   {aid}

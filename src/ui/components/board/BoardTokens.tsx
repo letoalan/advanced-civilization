@@ -1,6 +1,6 @@
 import { civById } from '../../../data/index.js';
 import type { BoardStyle } from './boardTheme.js';
-import { TriremeIcon, AcropolisCityIcon, TerrainMedallion } from './BoardPieceIcons.js';
+import { TriremeIcon, AcropolisCityIcon, BarbarianMedallion, TerrainMedallion } from './BoardPieceIcons.js';
 import { ClassicCityMarker, ClassicTokenMarker } from './BoardClassicTokens.js';
 
 export { polyPoints, tokenPoints, cityPoints } from './BoardClassicTokens.js';
@@ -13,18 +13,20 @@ export function CityMarker({
   cy,
   r,
   owner,
+  isNaturalSite = true,
   style = 'atlas',
 }: {
   cx: number;
   cy: number;
   r: number;
   owner: string;
+  isNaturalSite?: boolean;
   style?: BoardStyle;
 }) {
   const isPirate = owner === PIRATE;
   const color = isPirate ? '#141417' : (civById.get(owner)?.color ?? '#555555');
   if (style === 'atlas') {
-    return <AcropolisCityIcon cx={cx} cy={cy} r={r} color={color} isPirate={isPirate} />;
+    return <AcropolisCityIcon cx={cx} cy={cy} r={r} color={color} isPirate={isPirate} isNaturalSite={isNaturalSite} />;
   }
   return <ClassicCityMarker cx={cx} cy={cy} r={r} color={color} isPirate={isPirate} />;
 }
@@ -51,18 +53,22 @@ export function TokenMarker({
   const baseColor = barb ? '#1a1a1a' : (civById.get(owner)?.color ?? '#888');
 
   if (style === 'atlas') {
-    const sz = r * 1.35;
+    if (barb) {
+      return <BarbarianMedallion cx={x} cy={cy} r={r} count={count} />;
+    }
+    const rad = r * 0.68;
     return (
       <g filter="url(#atlas-piece-shadow)">
-        <rect x={x - sz / 2} y={cy - sz / 2} width={sz} height={sz} rx={2.5} fill={baseColor} stroke={barb ? '#ef4444' : '#1a1612'} strokeWidth={1.3} />
-        <rect x={x - sz / 2} y={cy - sz / 2} width={sz} height={sz} rx={2.5} fill="url(#atlas-token-bevel)" pointerEvents="none" />
+        {/* Lacquered wooden / resin circular token with antique bevel */}
+        <circle cx={x} cy={cy} r={rad} fill={baseColor} stroke="#21180f" strokeWidth={1.2} />
+        <circle cx={x} cy={cy} r={rad} fill="url(#atlas-token-circular-bevel)" pointerEvents="none" />
         <text
           x={x}
-          y={cy + sz * 0.35}
+          y={cy + rad * 0.38}
           textAnchor="middle"
-          fontSize={sz * 0.72}
+          fontSize={rad * 1.3}
           fontWeight="900"
-          fill={barb ? '#f87171' : '#ffffff'}
+          fill="#ffffff"
           stroke="#000000"
           strokeWidth={1.4}
           paintOrder="stroke fill"

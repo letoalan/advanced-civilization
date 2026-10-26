@@ -96,3 +96,21 @@ export function importSaveFromJson(rawJson: string): SaveValidationResult {
 export function exportSaveAsJson(save: LocalSaveFile): string {
   return JSON.stringify(save, null, 2);
 }
+
+export function downloadSaveFile(save: LocalSaveFile, filename?: string): void {
+  try {
+    const json = exportSaveAsJson(save);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename ?? `advciv-save-tour-${save.state.turn}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error('Échec du téléchargement du fichier JSON:', err);
+  }
+}
+

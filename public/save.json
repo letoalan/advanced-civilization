@@ -1,0 +1,272 @@
+{
+  "formatVersion": 1,
+  "appVersion": "0.2.0-local",
+  "savedAt": 1793034138416,
+  "config": {
+    "seats": [
+      {
+        "civilizationId": "italy",
+        "controller": "human",
+        "displayName": "Joueur 1"
+      },
+      {
+        "civilizationId": "africa",
+        "controller": "heuristic-ai"
+      }
+    ],
+    "boardPresetId": "raw-2p",
+    "privacyMode": "handoff",
+    "aiPace": "instant",
+    "seed": 42
+  },
+  "state": {
+    "schemaVersion": 2,
+    "turn": 1,
+    "phase": "taxation",
+    "board": {
+      "west": false,
+      "east": false,
+      "crops": [
+        "eastOfDotted"
+      ],
+      "disregardIslandCitySites": true,
+      "nations": [
+        "italy",
+        "africa",
+        "illyria",
+        "thrace"
+      ]
+    },
+    "tokensPerPlayer": 55,
+    "activeOrder": [
+      "italy",
+      "africa"
+    ],
+    "censusOrder": [
+      "italy",
+      "africa"
+    ],
+    "actedThisPhase": [
+      "africa",
+      "italy"
+    ],
+    "players": {
+      "italy": {
+        "id": "italy",
+        "stock": 55,
+        "treasury": 0,
+        "citiesAvailable": 9,
+        "shipsAvailable": 4,
+        "census": 1,
+        "advances": [],
+        "hand": {},
+        "calamities": [],
+        "astSpace": 0,
+        "epoch": "stone",
+        "taxRate": 2
+      },
+      "africa": {
+        "id": "africa",
+        "stock": 55,
+        "treasury": 0,
+        "citiesAvailable": 9,
+        "shipsAvailable": 4,
+        "census": 1,
+        "advances": [],
+        "hand": {},
+        "calamities": [],
+        "astSpace": 0,
+        "epoch": "stone",
+        "taxRate": 2
+      }
+    },
+    "seating": [
+      "italy",
+      "africa"
+    ],
+    "areas": {},
+    "trade": {
+      "stacks": {
+        "1": [
+          "hides",
+          "ochre",
+          "hides",
+          "ochre",
+          "hides",
+          "hides",
+          "hides",
+          "ochre",
+          "ochre",
+          "ochre",
+          "ochre",
+          "hides",
+          "hides",
+          "ochre"
+        ],
+        "2": [
+          "iron",
+          "iron",
+          "iron",
+          "papyrus",
+          "papyrus",
+          "papyrus",
+          "papyrus",
+          "iron",
+          "iron",
+          "papyrus",
+          "papyrus",
+          "iron",
+          "iron",
+          "calamity:volcano",
+          "calamity:treachery",
+          "papyrus",
+          "iron"
+        ],
+        "3": [
+          "timber",
+          "salt",
+          "timber",
+          "salt",
+          "salt",
+          "timber",
+          "timber",
+          "timber",
+          "salt",
+          "salt",
+          "timber",
+          "salt",
+          "timber",
+          "salt",
+          "salt",
+          "calamity:famine",
+          "calamity:superstition",
+          "timber",
+          "salt"
+        ],
+        "4": [
+          "oil",
+          "grain",
+          "grain",
+          "oil",
+          "oil",
+          "grain",
+          "oil",
+          "grain",
+          "grain",
+          "oil",
+          "grain",
+          "grain",
+          "grain",
+          "calamity:slaverevolt",
+          "calamity:civilwar",
+          "oil",
+          "oil"
+        ],
+        "5": [
+          "wine",
+          "cloth",
+          "cloth",
+          "wine",
+          "wine",
+          "wine",
+          "wine",
+          "cloth",
+          "cloth",
+          "cloth",
+          "cloth",
+          "calamity:flood",
+          "calamity:barbarianhordes",
+          "cloth",
+          "wine"
+        ],
+        "6": [
+          "bronze",
+          "bronze",
+          "silver",
+          "silver",
+          "bronze",
+          "silver",
+          "bronze",
+          "silver",
+          "bronze",
+          "calamity:epidemic",
+          "silver",
+          "bronze"
+        ],
+        "7": [
+          "resin",
+          "spices",
+          "resin",
+          "spices",
+          "spices",
+          "spices",
+          "spices",
+          "resin",
+          "resin",
+          "calamity:civildisorder",
+          "resin",
+          "spices"
+        ],
+        "8": [
+          "gems",
+          "dye",
+          "dye",
+          "gems",
+          "gems",
+          "dye",
+          "gems",
+          "calamity:iconoclasm",
+          "dye",
+          "gems"
+        ],
+        "9": [
+          "gold",
+          "ivory",
+          "ivory",
+          "ivory",
+          "gold",
+          "gold",
+          "ivory",
+          "calamity:piracy",
+          "gold",
+          "gold"
+        ]
+      }
+    },
+    "pendingCalamities": [],
+    "negotiation": {
+      "turnPointer": 0,
+      "passStreak": 0,
+      "actions": 0,
+      "nextOfferId": 0,
+      "done": [],
+      "offers": [],
+      "completed": []
+    },
+    "calamityTradedFrom": {},
+    "rngState": 3903743856,
+    "log": [
+      {
+        "seq": 0,
+        "turn": 1,
+        "phase": "taxation",
+        "side": null,
+        "kind": "game.start",
+        "msg": "Game started with 2 players (seed 42).",
+        "payload": {
+          "players": 2,
+          "seed": 42
+        }
+      }
+    ],
+    "pendingStart": {
+      "order": [
+        "italy",
+        "africa"
+      ]
+    },
+    "autoSkip": true,
+    "maxTurns": 60,
+    "pendingRevolts": {}
+  }
+}

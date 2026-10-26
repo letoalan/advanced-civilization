@@ -11,15 +11,15 @@ export function BoardPresetPicker({ presets, activePresetId, onSelect }: BoardPr
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontWeight: 800, fontSize: 13, color: '#ffd23f', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-          Plateau de jeu & Règles (§16) :
+        <span style={{ fontWeight: 800, fontSize: 13, color: 'var(--civ-gold-light)', textTransform: 'uppercase', letterSpacing: 0.6 }}>
+          Carte Géographique & Théâtre d'Expédition (§16) :
         </span>
-        <span style={{ fontSize: 11, color: '#a89882' }}>
-          Découpage officiel Avalon Hill selon l'effectif
+        <span style={{ fontSize: 11, color: 'var(--civ-stone-muted)' }}>
+          Cartographie historique du bassin méditerranéen
         </span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 8 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 10 }}>
         {presets.map((b) => {
           const isSelected = activePresetId === b.id;
           const info = PRESET_INFO_FR[b.id] ?? { label: b.label, desc: b.rule };
@@ -30,38 +30,36 @@ export function BoardPresetPicker({ presets, activePresetId, onSelect }: BoardPr
               onClick={() => onSelect(b.id)}
               style={{
                 textAlign: 'left',
-                background: isSelected
-                  ? 'linear-gradient(180deg, #422d16 0%, #291a0c 100%)'
-                  : 'linear-gradient(180deg, #231b14 0%, #17110c 100%)',
-                border: isSelected ? '1.5px solid #ffd23f' : '1px solid #4a341e',
-                borderRadius: 6,
-                padding: '8px 12px',
+                background: isSelected ? 'rgba(28, 36, 48, 0.95)' : 'rgba(16, 21, 28, 0.75)',
+                border: isSelected ? '1.5px solid var(--civ-gold-base)' : '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: 8,
+                padding: '10px 14px',
                 cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 3,
-                boxShadow: isSelected ? '0 0 10px rgba(255, 210, 63, 0.25)' : 'none',
-                transition: 'all .15s ease',
+                gap: 4,
+                boxShadow: isSelected ? '0 0 16px rgba(212, 175, 55, 0.25)' : 'var(--civ-glass-shadow)',
+                transition: 'all .16s ease',
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontWeight: 800, fontSize: 13, color: isSelected ? '#ffd23f' : '#f0e6d2' }}>
+                <span style={{ fontWeight: 800, fontSize: 13, color: isSelected ? 'var(--civ-gold-light)' : 'var(--civ-marble)' }}>
                   {info.label}
                 </span>
                 <span
                   style={{
                     fontSize: 10,
                     fontWeight: 700,
-                    padding: '1px 6px',
-                    borderRadius: 3,
-                    background: isSelected ? '#ffd23f' : '#382b1c',
-                    color: isSelected ? '#000' : '#d2c4b0',
+                    padding: '2px 8px',
+                    borderRadius: 4,
+                    background: isSelected ? 'var(--civ-gold-base)' : 'rgba(30, 38, 50, 0.8)',
+                    color: isSelected ? '#000' : 'var(--civ-marble)',
                   }}
                 >
                   {b.tokensPerPlayer} pions
                 </span>
               </div>
-              <div style={{ fontSize: 11, color: isSelected ? '#e0d0b8' : '#8e8070', lineHeight: 1.3 }}>
+              <div style={{ fontSize: 11, color: isSelected ? 'var(--civ-marble)' : 'var(--civ-stone-muted)', lineHeight: 1.35 }}>
                 {info.desc}
               </div>
             </button>

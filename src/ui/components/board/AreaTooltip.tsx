@@ -10,7 +10,7 @@ interface AreaTooltipProps {
 }
 
 /**
- * Hover detail card for an area displaying population limits, cities, occupants and terrain tags.
+  Cartel d'exposition archéologique pour une province au survol
  */
 export function AreaTooltip({ areaId, state, zoomed }: AreaTooltipProps) {
   const an = anchors[areaId];
@@ -22,60 +22,76 @@ export function AreaTooltip({ areaId, state, zoomed }: AreaTooltipProps) {
   const ships = Object.entries(a?.ships ?? {}).filter(([, n]) => n > 0);
   const cityOwner = a?.city;
   const right = an.x > BOARD_VIEWBOX.w * 0.75;
-  const flags = [meta?.isCitySite && 'city site', meta?.isFloodplain && 'floodplain', meta?.isVolcanoSite && 'volcano', meta?.isOpenSea && 'open sea']
-    .filter(Boolean)
-    .join(' · ');
-  const nameOf = (o: string) => (o === BARB ? 'Barbarians' : o === PIRATE ? 'Pirates' : civById.get(o)?.name ?? o);
+
+  const flags = [
+    meta?.isCitySite && 'Site de cité',
+    meta?.isFloodplain && 'Plaine alluviale',
+    meta?.isVolcanoSite && 'Volcan actif',
+    meta?.isOpenSea && 'Haute mer',
+  ].filter(Boolean).join(' · ');
+
+  const nameOf = (o: string) => (o === BARB ? 'Barbares' : o === PIRATE ? 'Pirates' : civById.get(o)?.name ?? o);
 
   return (
     <div
+      className="museum-cartel animate-pop"
       style={{
         position: 'absolute',
         left: `${(an.x / BOARD_VIEWBOX.w) * 100}%`,
         top: `${(an.y / BOARD_VIEWBOX.h) * 100}%`,
-        transform: `translate(${right ? 'calc(-100% - 14px)' : '14px'}, -50%) scale(${zoomed ? 0.56 : 1})`,
+        transform: `translate(${right ? 'calc(-100% - 14px)' : '14px'}, -50%) scale(${zoomed ? 0.7 : 1})`,
         transformOrigin: right ? 'right center' : 'left center',
-        zIndex: 20,
+        zIndex: 40,
         pointerEvents: 'none',
-        background: 'rgba(26,20,16,0.96)',
-        color: '#fff',
-        border: '2px solid #ffd23f',
-        borderRadius: 6,
-        padding: '6px 9px',
-        fontSize: 13,
-        lineHeight: 1.35,
-        maxWidth: 230,
-        boxShadow: '0 2px 10px rgba(0,0,0,0.6)',
+        fontSize: 12,
+        lineHeight: 1.4,
+        minWidth: 160,
+        maxWidth: 240,
       }}
     >
-      <div style={{ fontWeight: 800 }}>{meta?.name ?? areaId}</div>
-      <div style={{ fontSize: 11, opacity: 0.85 }}>
-        {meta?.isWater ? 'Sea' : `Population limit: ${meta?.sustains ?? '?'}`}
+      <div className="museum-cartel__title">{meta?.name ?? areaId}</div>
+      <div className="museum-cartel__meta" style={{ marginTop: 2 }}>
+        {meta?.isWater ? 'Bassin maritime' : `Capacité : ${meta?.sustains ?? '?'} pop`}
         {flags && ` · ${flags}`}
       </div>
-      {cityOwner && <div style={{ marginTop: 2 }}>🏛 {nameOf(cityOwner)} city</div>}
+
+      {cityOwner && (
+        <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#fef08a' }}>
+          <span>🏛</span>
+          <span>Cité de <strong>{nameOf(cityOwner)}</strong></span>
+        </div>
+      )}
+
       {owners.length > 0 && (
-        <div style={{ marginTop: 2, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        <div style={{ marginTop: 4, display: 'flex', flexWrap: 'wrap', gap: 6, fontSize: 11 }}>
           {owners.map(([o, n]) => (
-            <span key={o}>
+            <span key={o} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
               <span
                 style={{
                   display: 'inline-block',
-                  width: 9,
-                  height: 9,
-                  background: o === BARB ? '#1a1a1a' : (civById.get(o)?.color ?? '#888'),
-                  borderRadius: 2,
-                  marginRight: 3,
-                  verticalAlign: 'middle',
+                  width: 8,
+                  height: 8,
+                  background: o === BARB ? '#e11d48' : (civById.get(o)?.color ?? '#ffd23f'),
+                  borderRadius: '50%',
                 }}
               />
-              {nameOf(o)} {o === BARB ? `⚔ ${n}` : n}
+              <span>{nameOf(o)} {o === BARB ? `⚔ ${n}` : `(${n})`}</span>
             </span>
           ))}
         </div>
       )}
-      {ships.length > 0 && <div style={{ marginTop: 2 }}>⛵ {ships.map(([o, n]) => `${nameOf(o)} ${n}`).join(', ')}</div>}
-      {owners.length === 0 && !cityOwner && !meta?.isWater && <div style={{ fontSize: 11, opacity: 0.7 }}>empty</div>}
+
+      {ships.length > 0 && (
+        <div style={{ marginTop: 3, fontSize: 11, color: '#93c5fd' }}>
+          ⛵ {ships.map(([o, n]) => `${nameOf(o)} (${n} trirèmes)`).join(', ')}
+        </div>
+      )}
+
+      {owners.length === 0 && !cityOwner && !meta?.isWater && (
+        <div style={{ fontSize: 10, color: 'var(--civ-stone-muted)', fontStyle: 'italic', marginTop: 2 }}>
+          Terres libres
+        </div>
+      )}
     </div>
   );
 }

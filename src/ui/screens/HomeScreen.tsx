@@ -10,7 +10,7 @@ interface HomeScreenProps {
 }
 
 /**
- * Écran d'accueil principal en français de la version locale autonome.
+ * Portail d'accueil inspiré des musées archéologiques méditerranéens (MANN / Musée de l'Acropole).
  */
 export function HomeScreen({ onNewGame, onResumeGame, onImportSave }: HomeScreenProps) {
   const existingSave = loadLocalSave();
@@ -24,11 +24,8 @@ export function HomeScreen({ onNewGame, onResumeGame, onImportSave }: HomeScreen
     reader.onload = (event) => {
       const text = event.target?.result as string;
       const res = importSaveFromJson(text);
-      if (res.ok) {
-        onImportSave(res.save);
-      } else {
-        alert(`Erreur d'importation de la sauvegarde :\n${res.error}`);
-      }
+      if (res.ok) onImportSave(res.save);
+      else alert(`Erreur lors du chargement des archives :\n${res.error}`);
     };
     reader.readAsText(file);
     e.target.value = '';
@@ -43,100 +40,115 @@ export function HomeScreen({ onNewGame, onResumeGame, onImportSave }: HomeScreen
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        color: '#f0e6d2',
+        color: 'var(--civ-marble)',
         padding: 24,
-        background: '#0a0806',
+        background: 'radial-gradient(ellipse at 50% 30%, #18202c 0%, #0a0d12 100%)',
         textAlign: 'center',
         userSelect: 'none',
         overflow: 'hidden',
       }}
     >
-      {/* Fond vidéo local avec calque transparent de contraste */}
-      <VideoBackground opacity={0.75} />
+      <VideoBackground opacity={0.55} />
 
-      {/* Contenu interactif (au-dessus du calque) */}
       <div
+        className="animate-fade-in"
         style={{
           position: 'relative',
           zIndex: 2,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 16,
-          maxWidth: 620,
+          gap: 20,
+          maxWidth: 680,
           width: '100%',
         }}
       >
+        {/* Curatorial Header */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-          <div style={{ fontSize: 13, letterSpacing: 4, textTransform: 'uppercase', color: '#ffd23f', fontWeight: 800, textShadow: '0 2px 8px rgba(0,0,0,0.9)' }}>
-            Portage Numérique
+          <div
+            style={{
+              fontSize: 11,
+              letterSpacing: 4,
+              textTransform: 'uppercase',
+              color: 'var(--civ-gold-light)',
+              fontWeight: 700,
+              fontFamily: 'var(--civ-font-display)',
+            }}
+          >
+            Jeu de stratégie Historique
           </div>
+
           <h1
             style={{
               margin: 0,
-              fontSize: 'clamp(28px, 5.5vw, 44px)',
-              fontWeight: 900,
-              letterSpacing: 2,
-              color: '#f8edd4',
-              textShadow: '0 4px 20px rgba(0,0,0,0.95), 0 0 35px rgba(255,210,63,0.3)',
+              fontSize: 'clamp(28px, 5.5vw, 46px)',
+              fontWeight: 800,
+              letterSpacing: 3,
+              fontFamily: 'var(--civ-font-display)',
+              background: 'linear-gradient(180deg, #ffffff 20%, #d4af37 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              textShadow: '0 4px 20px rgba(0,0,0,0.8)',
             }}
           >
             ADVANCED CIVILIZATION
           </h1>
-          <div style={{ fontSize: 13, color: '#c2b29a', maxWidth: 520, lineHeight: 1.45, textShadow: '0 2px 6px rgba(0,0,0,0.9)' }}>
-            D’après le chef-d’œuvre d’Avalon Hill (1991). Version autonome locale, multijoueur sur un seul poste et adversaires IA.
+
+          <div
+            style={{
+              fontFamily: 'var(--civ-font-serif)',
+              fontSize: 18,
+              fontStyle: 'italic',
+              color: '#dcd4c4',
+              maxWidth: 560,
+              lineHeight: 1.4,
+            }}
+          >
+            L’Aube des Empires de la Méditerranée Antique
+          </div>
+
+          <div style={{ fontSize: 12, color: 'var(--civ-stone-muted)', maxWidth: 480, lineHeight: 1.5, marginTop: 4 }}>
+            Un jeu de stratégie historique explorant l'essor démographique, les routes commerciales maritimes et les avancées culturelles, du Néolithique à l’Âge du Fer.
           </div>
         </div>
 
-        {/* Bloc central des boutons avec effet glassmorphism */}
+        {/* Gallery Action Vitrine */}
         <div
+          className="glass-panel glass-panel--gold"
           style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: 10,
+            gap: 12,
             width: '100%',
-            maxWidth: 380,
-            marginTop: 6,
-            background: 'rgba(22, 16, 11, 0.72)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(140, 96, 42, 0.4)',
-            borderRadius: 12,
-            padding: 16,
-            boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+            maxWidth: 400,
+            padding: '22px 20px',
+            background: 'rgba(14, 18, 25, 0.85)',
           }}
         >
           <button
-            className="civ-btn"
-            style={{
-              fontSize: 15,
-              padding: '12px 20px',
-              fontWeight: 800,
-              background: 'linear-gradient(180deg, #f5a623 0%, #d47e12 100%)',
-              borderColor: '#ffd23f',
-              color: '#1a0e03',
-              boxShadow: '0 4px 14px rgba(245, 166, 35, 0.4)',
-            }}
+            className="glass-btn glass-btn--primary"
+            style={{ fontSize: 13, padding: '12px 22px', letterSpacing: 0.8 }}
             onClick={onNewGame}
           >
-            ⚔️ Nouvelle partie locale
+            🏛 Inaugurer une Expédition
           </button>
 
-          <button
-            className="civ-btn"
-            disabled={!existingSave}
-            style={{ fontSize: 14, padding: '10px 18px', opacity: existingSave ? 1 : 0.4 }}
-            onClick={() => existingSave && onResumeGame(existingSave)}
-            title={existingSave ? `Reprendre le tour ${existingSave.state.turn}` : 'Aucune sauvegarde existante'}
-          >
-            💾 Reprendre la partie {existingSave ? `(Tour ${existingSave.state.turn})` : ''}
-          </button>
+          {existingSave && (
+            <button
+              className="glass-btn"
+              style={{ fontSize: 13, padding: '10px 18px', borderColor: 'var(--civ-gold-base)', color: '#ffffff' }}
+              onClick={() => onResumeGame(existingSave)}
+            >
+              📜 Reprendre les Annales (Tour {existingSave.state.turn})
+            </button>
+          )}
 
           <button
-            className="civ-btn"
-            style={{ fontSize: 14, padding: '10px 18px' }}
+            className="glass-btn"
+            style={{ fontSize: 12, padding: '9px 16px' }}
             onClick={() => fileInputRef.current?.click()}
           >
-            📂 Importer une sauvegarde (.json)
+            📁 Charger des Archives (.json)
           </button>
           <input
             type="file"
@@ -147,19 +159,30 @@ export function HomeScreen({ onNewGame, onResumeGame, onImportSave }: HomeScreen
           />
 
           <button
-            className="civ-btn"
-            disabled
-            style={{ fontSize: 13, padding: '8px 14px', opacity: 0.45, cursor: 'not-allowed', color: '#bbb' }}
-            title="Désactivé dans cette version locale autonome"
+            className="glass-btn"
+            style={{ fontSize: 11, padding: '8px 14px', color: 'var(--civ-gold-light)', borderColor: 'var(--civ-gold-border-subtle)' }}
+            onClick={async () => {
+              try {
+                const res = await fetch('/save.json');
+                if (res.ok) {
+                  const text = await res.text();
+                  const parsed = importSaveFromJson(text);
+                  if (parsed.ok) onImportSave(parsed.save);
+                  else alert('Erreur lors du chargement de save.json.');
+                }
+              } catch {
+                alert('Impossible de charger le fichier save.json.');
+              }
+            }}
           >
-            🌐 Multijoueur en ligne (indisponible)
+            ⚡ Charger la Sauvegarde Exemple (save.json)
           </button>
         </div>
 
-        <div style={{ marginTop: 10, fontSize: 11, color: '#9a8a78', maxWidth: 480, lineHeight: 1.5, textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
-          <div>Sauvegardes 100 % locales — Aucune transmission de données à des serveurs tiers.</div>
-          <div style={{ marginTop: 4 }}>
-            Règles originales par Francis Tresham & Avalon Hill. Implémentation basée sur <i>digital-boardgame-framework</i>.
+        <div style={{ fontSize: 11, color: 'var(--civ-stone-muted)', maxWidth: 480, lineHeight: 1.5 }}>
+          <div>Collections et sauvegardes 100 % locales — Aucune transmission de données externes.</div>
+          <div style={{ marginTop: 2, opacity: 0.75 }}>
+            Hommage à Francis Tresham · Cartographie historique méditerranéenne.
           </div>
         </div>
       </div>

@@ -2,17 +2,20 @@
 
 ## 1. Fiche d'Identité
 - **Fichier source** : `src/ui/App.tsx`
-- **Rôle principal** : Conteneur orchestrateur de la partie en cours. Gère la boucle de jeu locale, le cycle de vie de l'état (`GameState`), les tours de l'IA avec cadence réglable, l'autosauvegarde locale automatique, les modales d'événements et le basculement entre la carte et les vues secondaires.
+- **Rôle principal** : Conteneur orchestrateur de la partie en cours. Gère la boucle de jeu locale, le cycle de vie de l'état (`GameState`), les tours de l'IA avec cadence réglable, l'autosauvegarde locale automatique, les modales d'événements, le Glass HUD flottant (`GlassTopBar` et `ActionDock`), la main interactive de cartes (`CardHand`), le mode cinématique (`PhaseBanner`, `useAnimatedMove`) et le popover de province (`ZonePopover`).
 - **Domaine** : UI / Orchestration de jeu
-- **Taille** : 170 lignes (entièrement conforme au seuil strict < 200 lignes, réduit depuis 2 795 lignes).
+- **Taille** : 189 lignes (entièrement conforme au seuil strict < 200 lignes).
 
 ## 2. Architecture & Dépendances
 - **Imports clés** :
-  - `components/board/` : `Board`, `Minimap`, `MapArtBanner`, `AreaPeekProvider`, `boardHelpers`.
-  - `components/navigation/` : `StatusPanel`, `UpcomingCalamities`, `GameOverSummary`, `TurnOrderTabs`, `ViewNav`, `PlayerHandoffModal`.
-  - `components/phases/` : `ActionList`, `MovementControls`, `useMovementPlanner`.
-  - `components/modals/` : `CombatModal`, `CalamityModal`, `LocalDiagnosticModal`.
-  - `components/views/` : `InfoView`.
+  - `components/board/` : `Board`, `MapArtBanner`, `AreaPeekProvider`, `nationFocusArea`, `scrollBoardTo`.
+  - `components/hud/` : `ZonePopover`, `GlassTopBar`, `CivBadge`, `ResourceCaskets`, `CalamityAlertBadge`, `SettingsModal`.
+  - `components/dock/` : `ActionDock`, `DockCodexButtons`.
+  - `cards/` : `CardHand`, `CommodityCard`, `CalamityCard`.
+  - `components/cinematic/` : `PhaseBanner`.
+  - `components/navigation/` : `ImperialTopBar`, `DecisionRibbon`, `CodexOverlayModal`, `TurnOrderTabs`, `PlayerHandoffModal`.
+  - `hooks/` : `useFocusMode`, `useAnimatedMove`, `useAnimatedNumber`, `useReducedMotion`.
+  - `sound/` : `soundManager`.
   - `local/` : `createLocalSession`, `saveLocalGame`, `clearLocalSave`.
   - `ai/heuristic.js` : Moteur de décision pour les sièges contrôlés par l'IA.
 - **Exports publics** :

@@ -23,12 +23,10 @@ export function useMovementPlanner(
   const outSet = useMemo(() => outOfPlay(state), [state]);
 
   const moveOpts = useMemo(() => computeMoveOptions(legal), [legal]);
-
   const queuedFromSimple = useCallback(
     (area: string) => queued.filter((q) => q.from === area).reduce((s, q) => s + q.count, 0),
     [queued],
   );
-
   const available = useCallback(
     (area: string) => (state.areas?.[area]?.tokens[actor ?? ''] ?? 0) - queuedFromSimple(area),
     [state, actor, queuedFromSimple],
@@ -37,10 +35,7 @@ export function useMovementPlanner(
   const voyagePlanner = useVoyagePlanner({ range, astronomy, outSet, available });
 
   useEffect(() => {
-    setOrigin(null);
-    setQueued([]);
-    setCountRaw(1);
-    voyagePlanner.resetVoyages();
+    setOrigin(null); setQueued([]); setCountRaw(1); voyagePlanner.resetVoyages();
   }, [actor, state.phase, state.turn]);
 
   const shipsLeft = useCallback(
@@ -51,6 +46,16 @@ export function useMovementPlanner(
       (voyagePlanner.voyage && voyagePlanner.voyage[0]!.area === area ? 1 : 0),
     [state, actor, queued, voyagePlanner.queuedVoyages, voyagePlanner.voyage],
   );
+
+  const playerShips = useMemo(() => {
+    if (!actor || !state.areas) return [];
+    const list: { area: string; count: number; available: number }[] = [];
+    for (const [area, aData] of Object.entries(state.areas)) {
+      const total = aData.ships?.[actor] ?? 0;
+      if (total > 0) list.push({ area, count: total, available: shipsLeft(area) });
+    }
+    return list;
+  }, [state.areas, actor, shipsLeft]);
 
   const origins = useMemo(() => {
     const set = new Set<string>();
@@ -176,6 +181,8 @@ export function useMovementPlanner(
     voyage: voyagePlanner.voyage,
     voyageInfo: voyagePlanner.voyageInfo,
     startVoyage: () => origin && shipsLeft(origin) > 0 && (voyagePlanner.startVoyage(origin), setOrigin(null)),
+    startVoyageAt: (area: string) => { setOrigin(null); voyagePlanner.startVoyage(area); },
+    playerShips,
     cancelVoyage: voyagePlanner.cancelVoyage,
     undoStop: voyagePlanner.undoStop,
     finishVoyage: voyagePlanner.finishVoyage,

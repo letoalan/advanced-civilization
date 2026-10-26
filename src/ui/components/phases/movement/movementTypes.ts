@@ -39,6 +39,8 @@ export interface MovementPlanner {
   voyage: VoyageStep[] | null;
   voyageInfo: { used: number; range: number; cargo: number; cargoAfter: number[]; canFinish: boolean } | null;
   startVoyage: () => void;
+  startVoyageAt: (area: string) => void;
+  playerShips: { area: string; count: number; available: number }[];
   cancelVoyage: () => void;
   undoStop: () => void;
   finishVoyage: () => void;

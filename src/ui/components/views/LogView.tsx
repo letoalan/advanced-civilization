@@ -22,18 +22,20 @@ export function LogView({ state }: { state: GameState }) {
     : all;
 
   return (
-    <div style={{ padding: 16, color: '#eee' }}>
-      <h2 style={{ marginTop: 0 }}>Journal des Événements (Log)</h2>
-      <div className="civ-lbl" style={{ color: '#b9ad8e', marginBottom: 8, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-        <span>Historique complet des décisions ({q ? `${lines.length} sur ${all.length}` : all.length} entrées).</span>
+    <div style={{ color: 'var(--civ-marble)' }}>
+      <h2 style={{ marginTop: 0, fontFamily: 'var(--civ-font-display)', letterSpacing: 1.2, color: 'var(--civ-gold-light)', fontSize: 17, textTransform: 'uppercase' }}>
+        📜 Chroniques Impériales — Annales Historiques
+      </h2>
+      <div className="civ-lbl" style={{ color: 'var(--civ-stone-muted)', marginBottom: 12, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+        <span>Historique complet des annales ({q ? `${lines.length} sur ${all.length}` : all.length} entrées).</span>
         <input
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
           placeholder="filtrer (civ, zone, phase, §règle…)"
-          style={{ background: 'rgba(0,0,0,0.35)', color: '#eee', border: '1px solid #5a5646', borderRadius: 4, padding: '2px 8px', fontSize: 12, width: 220 }}
+          style={{ background: 'rgba(20, 26, 36, 0.85)', color: 'var(--civ-marble)', border: '1px solid var(--civ-gold-border-subtle)', borderRadius: 6, padding: '4px 10px', fontSize: 11, width: 240 }}
         />
       </div>
-      <div style={{ background: 'rgba(0,0,0,0.22)', borderRadius: 4, padding: 10, fontSize: 12, lineHeight: 1.7, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', maxWidth: 980 }}>
+      <div style={{ background: 'rgba(12, 16, 22, 0.75)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: 14, fontSize: 12, lineHeight: 1.7, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', maxWidth: 980 }}>
         {lines.length === 0 && <span className="civ-lbl">{q ? '(aucun résultat)' : '(aucun événement)'}</span>}
         {[...lines].reverse().map((l, i) => {
           const e = typeof l === 'string' ? null : l;

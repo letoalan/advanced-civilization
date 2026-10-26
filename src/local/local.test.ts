@@ -58,7 +58,8 @@ describe('Couche locale autonome', () => {
     expect(isHumanActor(validConfig, 'africa')).toBe(false);
   });
 
-  it('sérialise et importe une sauvegarde sans perte', () => {
+  it('sérialise et importe une sauvegarde sans perte et génère save.json', async () => {
+    const fs = await import('node:fs');
     const state = createLocalSession(validConfig);
     const saveObj = {
       formatVersion: 1 as const,
@@ -68,6 +69,7 @@ describe('Couche locale autonome', () => {
       state,
     };
     const jsonStr = exportSaveAsJson(saveObj);
+    fs.writeFileSync('save.json', jsonStr, 'utf-8');
     const imported = importSaveFromJson(jsonStr);
     expect(imported.ok).toBe(true);
     if (imported.ok) {
