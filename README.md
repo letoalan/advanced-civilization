@@ -1,288 +1,141 @@
-# Advanced Civilization (digital)
+# Advanced Civilization — Édition Numérique (Atlas Antique Méditerranéen)
 
-A digital port of Avalon Hill's **Advanced Civilization** (1991), built on
-[`digital-boardgame-framework`](https://www.npmjs.com/package/digital-boardgame-framework).
+Portage numérique fidèle et modernisé du jeu de plateau légendaire **Advanced Civilization** d'Avalon Hill (1991), propulsé par React 19, TypeScript et [`digital-boardgame-framework`](https://www.npmjs.com/package/digital-boardgame-framework).
 
-**Play online:** https://advanced-civilization.pages.dev
-(Local hotseat + AI works with no setup; online multiplayer needs the Supabase
-env vars below set on the Cloudflare Pages project.)
+L'application offre une **expérience locale autonome complète** (Hotseat + IA heuristique, zéro dépendance réseau requise, sauvegarde instantanée et export/import JSON) habillée d'une direction artistique inspirée des musées archéologiques méditerranéens et des grands atlas historiques (*Atlas Antique*), tout en conservant l'infrastructure serveur pour le multijoueur asynchrone.
 
-Rules source: the [Advanced Civilization rules & guide (OCR)](https://astro.ucla.edu/~ianc/files/civ/civ_rules_and_guide_ocr.pdf).
-Map / card / advance **data** (area graph, adjacency, advances, calamities, cards)
-was extracted into this repo's own JSON from the
-[VASSAL module](https://obj.vassalengine.org/images/e/ee/AdvancedCivilization_v1.0.vmod).
+---
 
-**Board artwork is not distributed.** The app ships no map images and draws the
-board from its own area geometry, so it is fully playable as-is. A player who owns
-the VASSAL module can optionally load it from the in-game prompt; the three map SVGs
-are then extracted from it entirely in the browser and cached only on that device
-(IndexedDB) — nothing is uploaded, and the deployed app never serves the artwork.
-The module file (`assets/civ.vmod`) and any extracted `map-*.svg` are git-ignored.
+## ✨ Points Forts & Fonctionnalités
 
-## Status
+### 🏛️ Direction Artistique « Atlas Antique » & Ergonomie Moderne
+- **Portail Muséal & Vidéo d'Ambiance** : Écran d'accueil immersif avec arrière-plan vidéo (*Merveilles du Monde Antique*), typographie épigraphique, panneaux en verre dépoli (*Ethereal HUD*) et sélecteur de langue.
+- **Double Rendu Cartographique (`3800 × 1405` px)** : Bascule instantanée entre le thème **Atlas Antique** (mers ardoise avec ondelettes bathymétriques et calligraphie latine filigranée, terres parcheminées, frontières sépia) et le thème **Classique 1991** (rendu vectoriel sobre d'origine), ainsi que le support optionnel des planches VASSAL (`civ.vmod` mis en cache localement dans `IndexedDB`).
+- **Pièces & Marqueurs Vectoriels Tactiles** : Pions de population en bois biseauté avec reflets et ombres portées, cités en silhouette d'acropole antique, galères de guerre méditerranéennes (trières à éperon rostral), citadelles pirates crénelées, pions barbares et médaillons métalliques gravés pour les volcans, plaines inondables et sites de cité.
+- **Navigation Fluide & Niveau de Détail (LOD)** : Pan & Zoom focal à la molette centré sur le curseur, mini-carte interactive, centrage automatique sur la nation active, bouton de vue générale, apparition progressive des noms de provinces selon le zoom, et **Mode Regard des Dieux (*God Mode*)** activable via la barre d'`Espace` pour inspecter librement le plateau nu.
+- **Cartes Illustrées & Repli CSS** : 54 illustrations dédiées au format `.webp` (`public/assets/cards/` : 18 marchandises, 12 calamités, 24 avances et dos de cartes) intégrées dans un cadre universel (`CardFrame`) avec repli vectoriel CSS doré garanti sans image brisée.
+- **Internationalisation (i18n) & Audio** : Interface et données de jeu intégralement traduites en **4 langues** (**Français** par défaut, **Anglais**, **Allemand**, **Espagnol**). Synthétiseur d'effets sonores Web Audio API intégré (`soundManager` : pièces d'or, cartes, tonnerre de calamité, fanfare).
 
-Engine-first build (correctness prioritized), local hotseat + heuristic AI.
+### ⚖️ Moteur de Règles Intégral & Certifié (Avalon Hill 1991)
+- **Machine à États Déterministe (12 Phases)** : Implémentation complète des règles officielles (`src/engine/`) via `CivAdapter` :
+  1. *Collecte des impôts* (§19) & révoltes fiscales
+  2. *Expansion démographique* (§20)
+  3. *Recensement* (§21) déterminant l'ordre de jeu
+  4. *Construction & maintenance navale* (§22)
+  5. *Mouvement terrestre & expéditions maritimes* (§23) avec planificateur interactif de trajectoire et de convoi
+  6. *Conflits & assauts de cités* (§24) avec attrition round-robin, modificateurs de *Travail du Métal* / *Ingénierie*, pillage et vol de carte
+  7. *Construction de cités* (§25)
+  8. *Retrait des surplus & vérification du soutien des cités* (§26)
+  9. *Acquisition des cartes de commerce* (§27) et achat d'Or / Ivoire dans la 9e pile (§27.5)
+  10. *Négociation commerciale* (§28) bilatérale avec règle des $\ge 2$ cartes déclarées honnêtement et refilade secrète de calamités négociables
+  11. *Résolution des calamités* (§29–30) : les 12 calamités complètes avec modificateurs d'avances, sélections de victimes secondaires (*Épidémie*, *Iconoclasme*), *Guerre Civile*, marche des *Hordes Barbares* et *Piraterie*
+  12. *Acquisition des avances de civilisation* (§31) avec crédits de famille/prérequis et *Progression sur la piste A.S.T.* (§33–35)
+- **Topologie & Découpages Géographiques (§16)** : Graphe unifié de **222 territoires** et **140 côtes** couvrant l'Occident, la Méditerranée centrale et l'Orient. Préréglages officiels selon le nombre de joueurs (2 à 8 joueurs), gestion automatique de la règle **Italie ↔ Ibérie** et des zones hors-jeu (greyouts dérivés de VASSAL).
+- **Piste A.S.T. Authentique par Nation** : Seuils d'époques (*Âge du Bronze Ancien*, *Bronze Récent*, *Fer Ancien*, *Fer Récent*) spécifiques à chacune des 14 civilisations, extraits des planches individuelles et validés.
+- **Conservation Stricte** : Tests automatisés garantissant l'invariance du stock de pions (55 pions, 9 cités, 4 navires par nation) et la circulation fermée des 126 cartes de commerce/calamités.
 
-- ✅ Game data extracted & cross-validated (222 map areas + adjacency, 24 advances,
-  18 commodities/114 cards, 12 calamities, 14 civilizations, AST/epochs).
-- ✅ Rules engine: full 12-phase turn machine implemented as a `GameAdapter`
-  (`src/engine/`). 34 passing tests incl. full random + AI playthroughs to a winner.
-- ✅ Trade negotiation (§28): bilateral propose/respond with the honest-count +
-  ≥2-declared truth rule, passing tradable calamities among undeclared cards,
-  buying Gold/Ivory from the ninth stack (§27.5), and hidden-info redaction of
-  hands and pending-offer cards.
-- ✅ §26 sequencing: surplus population removed *after* city construction (cities
-  built from temporarily over-stacked areas), city areas hold no tokens, and city
-  support (2 board tokens per city) enforced after surplus removal and again after
-  calamities — reducing unsupported cities.
-- ✅ §24 combat: round-robin token attrition (fewest-first, Metalworking removes
-  last, coexistence within the area limit, N-player ascending order) and city
-  assault — 7-token threshold (6 with attacker Engineering, 8 vs a defender with
-  Engineering), city→tokens replacement, pillage (≤3 stock→treasury), and stealing
-  a random trade card from the victim (§24.5).
-- ✅ Ships & naval movement (§22-23): interactive ship construction (2 tokens,
-  coastal, max 4), per-turn maintenance (1 token or scrapped, §22.3), and naval
-  transport — a ship ferries up to 5 tokens across water (4 areas, +1 with Cloth
-  Making), with open oceans gated by Astronomy. (The module flags every sea
-  `OpenSea`; we treat the 7 enclosed/coastal seas as freely navigable and 6 open
-  oceans as Astronomy-gated, so coastal/island nations can still sail.)
-- ✅ Full three-panel map stitched into one connected graph: the Western/Main/
-  Eastern panels each reprint their shared boundary areas (same name, e.g. Etruria
-  on Western+Main, Susa on Main+Eastern). Those 15 seam areas are merged into one
-  canonical land node (folding the Eastern panel's sustains-0 slivers into the real
-  area), joining all 222 areas into a single component (a connectivity test guards it).
-- ✅ AST (§33-35): the board's actual 16-space track (read from `map-ast.svg`),
-  100 points/space, finishing at 1600. Epoch entry gated by the uniform
-  requirements (cities / card count / card groups; Late Iron Age needs civ-card
-  value ≥ the space's point value, §33.25); city-less nations slide back. The
-  Genuinely **per-civilization**: every epoch boundary for all 14 nations is read
-  from the VASSAL per-civ AST strips (`ASTstrip-<civ>.svg`, via `scripts/ast-epochs.mjs`)
-  — the grey blocks place each nation's Early Bronze/Late Bronze/Early Iron regions
-  at different columns, and each has its own Late Iron Age thresholds (e.g. Egypt
-  develops fast with EB at space 4 and LIA 1300/1600/1900; Thrace slower, EB at 6).
-  Cross-checked against the 1995 computer version's AST screen: Africa, Illyria and
-  Thrace match exactly (validating the extraction); Iberia uses Italy's track per
-  the official game (it replaces Italy on the West map), overriding the fan
-  module's outlier `iberia` strip.
-- ✅ Trade-stack delivery (§15.2/§29.7): stacks built with a top buffer of
-  `numPlayers` commodities, tradable calamities shuffled in, and non-tradable
-  calamities at the bottom (stack 1 has none). The whole 126-card deck circulates
-  and is conserved: resolved calamities (§29.7) and commodity cards spent on
-  advances (§31) return face-down to the bottom of their stack — nothing leaves
-  the game (enforced by a deck-conservation test, like the piece-supply one).
-- ✅ Calamity special cases: Civil War factions defecting to the strongest-reserve
-  rival (§30.41, with Music/Drama/Democracy/Philosophy/Military modifiers); the
-  Barbarian-Horde landing + multi-step march through the combat engine, persisting
-  as a neutral force (§30.52, Crete immune); Piracy turning coastal cities into
-  neutral pirate cities for the victim and two secondary victims (§30.91). Both
-  persist on the board inertly until a player clears them (§30.5235/§30.913): they
-  never grow, count for no nation, survive surplus/support removal, and can be
-  attacked away (barbarians by token combat, pirate cities stormed for pillage).
-  The board shows barbarians (⚔) and pirate cities (☠) distinctly; and
-  secondary-victim selection for Epidemic (25 unit points) and Iconoclasm (2
-  cities) — sparing the trader, with Medicine/Roadbuilding and Theology/Philosophy
-  modifiers (§30.61, §30.81).
-- ✅ Heuristic AI opponent (`src/ai/heuristic.ts`) — grows territory, builds
-  supported cities, buys advances, and **initiates trades** (mutually-beneficial
-  set-building swaps, dumping tradable calamities onto partners; accepts/declines
-  incoming offers). It is **multiplayer-fair** — it only reads its own hand and
-  proposes blind, never inspecting opponents' cards.
-- ✅ Hotseat React/Vite UI (`src/ui/`) laid out after the 1995 computer version:
-  the board on top, an orange/tan control bar (left nav SYSTEM/AST/CENSUS/TOOLS/
-  GOODS, a nation status block — In Stock / On Map / Treasury, a phase + message +
-  per-phase actions panel, and a minimap), and a turn-order tab strip. AST /
-  Census / Tools / Goods open full-screen info views (the AST view shows each
-  nation's per-civ track and marker). Run with `npm run dev`.
+### 🤖 IA Heuristique & Session Locale Autonome
+- **IA Heuristique Fair-Play (`src/ai/heuristic/`)** : Joue toutes les phases sans tricher (n'inspecte jamais les mains adverses), planifie ses expansions, mouvements, assauts, constructions de cités soutenues, achats d'avances optimisés et initie/évalue des offres commerciales mutuellement profitables.
+- **Mode Hotseat & Confidentialité** : Configuration libre de 2 à 8 sièges panachant humains et IA, avec **Rideau de passage de main** (`PlayerHandoffModal`) masquant les informations secrètes entre deux joueurs humains ou mode **Table ouverte**.
+- **Persistance & Diagnostic Local (`src/local/`)** : Sauvegarde automatique continue dans `localStorage` à chaque action, reprise directe depuis l'accueil, export et import de fichiers `.json` validés, et générateur de rapports de diagnostic anonymisés (`LocalDiagnosticModal`).
 
-## Layout
+---
 
-```
-src/
-  data/        Extracted game data (JSON) + typed loader & validator
-  engine/      Types, setup, the phase machine + GameAdapter, helpers, tests
-  ai/          Heuristic PlayerController
-  ui/          React hotseat client (Vite)
-scripts/       Data-extraction scripts (VASSAL buildFile -> JSON)
-assets/        Downloaded rules PDF + VASSAL module (+ extracted text)
-public/assets/ Board SVG served by the UI
-```
+## 🚀 Démarrage Rapide
 
-## Commands
+### Prérequis
+- **Node.js** 18+ (recommandé : Node 20 ou 22)
+- **npm**
 
+### Installation & Lancement
 ```bash
-npm test         # vitest engine + AI tests
-npm run typecheck
-npm run dev      # hotseat UI at http://localhost:5173
-npm run build:ui # production UI build
+# Installer les dépendances
+npm install
+
+# Lancer le serveur de développement Vite (Hotseat + IA)
+npm run dev
+```
+Ouvrez ensuite `http://localhost:5173` dans votre navigateur.
+
+- Pour accéder à l'**outil développeur d'inspection géométrique des territoires et des côtes**, ouvrez `http://localhost:5173/?dev`.
+
+---
+
+## 🛠️ Commandes & Scripts
+
+| Commande | Description |
+| :--- | :--- |
+| `npm run dev` | Lance l'interface React en mode développement avec rechargement à chaud (`http://localhost:5173`) |
+| `npm run build:ui` | Compile le bundle de production de l'interface web dans `dist-ui/` |
+| `npm run build` | Compile le code TypeScript serveur/moteur dans `dist/` |
+| `npm test` | Exécute l'ensemble des suites de tests unitaires et d'intégration avec Vitest |
+| `npm run test:watch` | Lance Vitest en mode écoute continue |
+| `npm run typecheck` | Vérifie le typage statique TypeScript (`tsc --noEmit`) |
+| `npm run check:lines` | Vérifie la charte architecturale : **aucun fichier de `src/` ne doit dépasser 200 lignes** |
+| `npm run serve` | Compile et démarre le serveur HTTP multijoueur local (`:8787`, stockage fichier) |
+| `npm run deploy` | Compile l'UI et déploie sur Cloudflare Pages (`wrangler pages deploy`) |
+
+---
+
+## 🗂️ Architecture du Projet
+
+Le code source respecte une **charte de modularité stricte** : chaque fichier dans `src/` compte **moins de 200 lignes** (vérifié par `scripts/check-line-counts.mjs`) et possède sa fiche technique dédiée dans [`docs/wiki/`](docs/wiki/README.md).
+
+```text
+advanced-civilization/
+├── src/
+│   ├── config/          # Feature flags centraux (features.ts : mode local autonome vs réseau)
+│   ├── data/            # Données JSON validées (222 zones, adjacences, côtes, 24 avances, 12 calamités,
+│   │                    # 18 marchandises, 14 civilisations, pistes AST) & adaptateur cartographique
+│   ├── engine/          # Moteur de règles déterministe (CivAdapter, 12 phases, calamités, topologie, tests)
+│   ├── ai/              # Contrôleur HeuristicAI modulaire (mouvement, combat, commerce, avances, navires)
+│   ├── local/           # Couche locale autonome (sessions, sauvegarde localStorage, import/export JSON, diagnostic)
+│   ├── ui/              # Client React 19
+│   │   ├── cards/       # Composants de cartes illustrées (Marchandises, Calamités, Avances, Main du joueur)
+│   │   ├── components/  # Plateau SVG (Atlas Antique & Classique), HUD, Barre Impériale, Codex, Phases, Modales
+│   │   ├── dev/         # Éditeur et inspecteur de géométrie des territoires et côtes (?dev)
+│   │   ├── hooks/       # Hooks d'animation, drag-and-drop de cartes, mode focus et accessibilité
+│   │   ├── i18n/        # Dictionnaires de traduction complets (FR, EN, DE, ES)
+│   │   ├── online/      # Composants de salon et partie multijoueur en ligne
+│   │   ├── screens/     # Portail d'accueil (HomeScreen), Configuration de partie (LocalSetupScreen), Vidéo
+│   │   ├── sound/       # Synthétiseur d'effets sonores Web Audio API (soundManager.ts)
+│   │   └── theme/       # Design tokens CSS, icônes vectorielles et préférences utilisateur (settingsStore.ts)
+│   ├── client/          # Client HTTP & Supabase Realtime pour le mode en ligne
+│   └── server/          # Serveur de jeu (GameServer, routeur HTTP/Cloudflare Workers, persistance)
+├── public/
+│   ├── assets/cards/    # Illustrations WebP des 54 cartes et dos de cartes
+│   └── medias/          # Vidéo d'ambiance et planches PDF de référence des cartes illustrées
+├── docs/
+│   ├── wiki/            # Documentation technique exhaustive fichier par fichier
+│   ├── GUIDE_TESTEUR.md # Guide pas-à-pas de recette et de validation fonctionnelle
+│   └── *.md             # Rapports d'audit cartographique, géoréférencement et journal d'événements
+├── scripts/             # Scripts d'extraction VASSAL, génération de graphes côtiers et contrôle qualité
+└── functions/           # Point d'entrée serverless Cloudflare Pages Functions (/api/*)
 ```
 
-## Design notes
+---
 
-- **Phase model.** The turn runs through `PHASE_ORDER` (rules §18). System phases
-  (taxation, population growth, census, conflict, trade-card acquisition, trade,
-  calamity, AST) resolve deterministically; interactive phases (movement, city
-  construction, advance acquisition) cycle players in census order until each
-  `pass`es. After every action the state is *normalized* so `currentActor()`
-  always points at a real decision.
-- **Determinism.** All randomness flows through the framework's seeded `Rng`
-  (serialized into `GameState.rngState`), so games are reproducible and the
-  framework can round-trip state at turn boundaries.
-- **Play area (rules §16).** `GameState.board` fixes the board configuration for
-  the whole game: extension-board toggles plus main-board crops whose
-  out-of-play area sets are derived from the VASSAL module's own greyout
-  overlays (`scripts/derive_play_areas.py` → `src/data/playAreas.json`).
-  Out-of-play areas are treated as nonexistent — every adjacency helper
-  (`neighbors`, `landNeighbors`, `navalDestinations`) is play-area-gated, so
-  movement, naval paths, flood plains, barbarian landings and the AI can never
-  reach them. Setup presets per player count implement §16.2–16.8 (47/55
-  tokens, nation lists, the two-player island-city-site rule); nation
-  availability additionally requires an in-play start area (§16.12).
-- **Italy ↔ Iberia.** One red player-race, never both in a game: the West
-  Extension Map's rules state *"Iberia now starts from any of the three areas
-  on the western edge of the peninsula (replacing Italy as a player-race);
-  African openings are also expanded"* (companion guide p.2 — the module
-  agrees: shared `italia-iberia` colour swatch, one census card
-  "2 - Italy/Iberia"). So any board with the Western Extension fields Iberia
-  and retires Italy; without it Iberia doesn't exist. This — plus Africa's
-  added Cirta opening — is what §16.12's "the start areas for Africa and Italy
-  are changed accordingly" refers to. Per Q&A 33.25 (guide p.22) the ADVANCED
-  CIVILIZATION A.S.T. is *always* used and the revised table printed on the
-  extension map is disregarded, so Iberia advances on Italy's row (1400/1700,
-  matching the 1995 computer edition) and Africa keeps 1300/1600.
+## 📚 Documentation & Guides
 
-## Verified against the rulebook / components
+- **[Wiki Technique Complet (`docs/wiki/README.md`)](docs/wiki/README.md)** : Index général documentant individuellement chaque module du moteur, de l'IA, de la couche locale et de l'interface.
+- **[Modernisation Cartographique (`docs/wiki/cartography-modernization.md`)](docs/wiki/cartography-modernization.md)** : Détails sur la direction artistique *Atlas Antique*, le rendu vectoriel et l'ergonomie du plateau.
+- **[Guide du Testeur (`docs/GUIDE_TESTEUR.md`)](docs/GUIDE_TESTEUR.md)** : Procédures de test pour les parties locales, le rideau de confidentialité Hotseat, la navigation sur la carte et les sauvegardes.
 
-These were checked directly against the rendered rulebook and VASSAL data, and are
-locked in by tests:
+---
 
-- **Commodity values** — single-card value = stack number; a set of n is n²·value.
-  Confirmed from the printed cards (Iron 2,8,18,32,…; Wine 5,20,45,…; Ivory 9,36,81,144)
-  and the §8.1 table. Counts (total 114) counted from the VASSAL cards.
-- **Calamity trade status** (rules §9.1) — non-tradable (4): Volcano/Earthquake,
-  Famine, Civil War, Flood. Tradable (8): Treachery, Superstition, Slave Revolt,
-  Barbarian Hordes, Epidemic, Civil Disorder, Iconoclasm & Heresy, Piracy.
-- **City sites** — the 86 printed city sites from VASSAL `CitySite` tags (6 tokens
-  build a city on a site, 12 elsewhere, §25.2). Plus `Floodplain` (29), `OpenSea`
-  (14), `VolcanoSite` (5) designations.
-- **Opening areas** — each nation's legal start areas from VASSAL `StartRegion` tags.
-- **Piece supply** — 55 tokens / 9 cities / 4 ships per nation (VASSAL CardSlots),
-  conserved across every action (enforced by tests).
+## 🌐 Mode Multijoueur Asynchrone (Optionnel)
 
-## Async multiplayer
+Par défaut, l'application est configurée en **mode local autonome** (`src/config/features.ts` avec `onlineMultiplayer: false`), garantissant un fonctionnement 100 % hors-ligne sans aucune requête externe.
 
-`src/server/` wires the framework's `GameServer` around the engine: storage,
-notifications, and realtime are chosen from the environment, so the same code
-runs locally (filesystem store, no setup) and in production (Supabase + Resend +
-Supabase Realtime). Per-seat secret tokens, redacted views (hidden hands), and
-turn-ownership are enforced server-side.
+L'infrastructure complète pour le multijoueur en ligne (`src/server/`, `src/client/`, `functions/api/[[path]].ts`, `supabase/schema.sql`) reste présente et opérationnelle :
+1. Activez les drapeaux souhaités dans `src/config/features.ts`.
+2. Pour tester en local avec stockage sur disque : `npm run serve` (port `:8787`).
+3. Pour déployer en production sur **Cloudflare Pages + Supabase**, appliquez `supabase/schema.sql` et configurez les variables `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` (et optionnellement `RESEND_API_KEY`, `MAIL_FROM`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`).
 
-```bash
-npm run serve     # build + run the HTTP host (filesystem store) on :8787
-```
+---
 
-- `src/server/game-server.ts` — env-driven `GameServer` (FsStore ↔ SupabaseStore,
-  Noop ↔ ResendNotifier, Noop ↔ SupabaseBroadcaster).
-- `src/server/http.ts` — Node REST host (`POST /api/games`, `GET …/:id`,
-  `…/legal`, `POST …/move`, `…/messages`, `…/report`).
-- `src/client/api.ts` — a `GameClientApi` over `fetch` (+ optional Realtime) for
-  the framework's `useGame` hook; `createGame` returns a shareable URL per seat.
-- `supabase/schema.sql` — apply to your Supabase project; see `.env.example`.
+## 📜 Licence & Crédits
 
-Verified end-to-end (`src/server/multiplayer.test.ts` + a live HTTP smoke test):
-distinct per-seat tokens, bad tokens rejected, only the seat on the clock may
-move, opponents' hands redacted in per-seat views, and moves persisted.
+Le code source original de ce dépôt (moteur de règles, intelligence artificielle, serveur et interface utilisateur) est distribué sous licence **[MIT](LICENSE)** © 2026 John Champaign.
 
-### Deploying (Cloudflare Pages + Supabase)
-
-Deployed at https://advanced-civilization.pages.dev (project `advanced-civilization`).
-
-- `src/server/handlers.ts` — one platform-agnostic `handleApi()` router shared by
-  the Node dev host (FsStore) and the Pages Function (Supabase), so dev and prod
-  are true parity.
-- `functions/api/[[path]].ts` — the Cloudflare Pages Function: builds a
-  `GameServer` over `SupabaseStore` + `SupabaseBroadcaster` and delegates to
-  `handleApi`. Imports only the Workers-safe server barrel (no `node:fs`).
-- `wrangler.toml` — `pages_build_output_dir = dist-ui`, `nodejs_compat`.
-
-Build command (Pages project setting): `npm run build:ui`. Manual deploy:
-
-```bash
-npm run build:ui
-npx wrangler pages deploy dist-ui --project-name advanced-civilization
-```
-
-To enable online multiplayer, set these as Pages environment variables / secrets
-(Production) and redeploy:
-
-| variable | purpose |
-| --- | --- |
-| `SUPABASE_URL` | Supabase project URL (server store + broadcaster) |
-| `SUPABASE_SERVICE_KEY` | service-role key (server only — bypasses RLS) |
-| `RESEND_API_KEY` *(optional)* | turn-notification emails |
-| `MAIL_FROM` *(optional)* | from-address for those emails |
-
-Apply `supabase/schema.sql` to the Supabase project once (creates the `dbf_*`
-tables with RLS on). For instant client refresh (vs. polling), also build the SPA
-with `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` (anon key is safe in the
-bundle; Realtime only).
-
-## Online lobby & bug reporting (UI)
-
-The SPA has a landing screen → **Local hotseat + AI** or **Online multiplayer**:
-
-- **Lobby** (`src/ui/online.tsx`): pick 2–6 nations, create a game, and get a
-  shareable invite URL per seat (copy, or "Open as <nation>"). Opening an invite
-  (`?game=…&token=…`) drops you straight into that seat.
-- **OnlineGame**: drives the client API through the framework's **`useGame`** hook
-  (polling + optional Supabase Realtime), rendering the same board/panels as
-  hotseat and submitting moves to the server.
-- **Bug reporting + log upload**: a "Report a bug" panel (severity + message)
-  posts via the client `report()` — it attaches the game's move log as `clientLog`
-  and the server auto-captures the full game snapshot, so the whole game is
-  uploaded. The framework's contract guarantees a report never silently fails
-  (you only see "thanks" on a real `reportId`). There's also a "Download game
-  log" button. (Verified: `multiplayer.test.ts` stores a report with snapshot +
-  log and retrieves it by category; the HTTP `/report` endpoint returns a
-  `reportId`.)
-
-## Not yet built
-
-- **AI depth** — the heuristic AI is a competent baseline, not a strong opponent.
-- ~~The **West-scenario `africa-western` AST variant** is extracted but
-  unused.~~ Correctly unused: Q&A 33.25 (guide p.22) says the ADVANCED
-  CIVILIZATION A.S.T. is always used and the revised table printed on the
-  West Extension Map (the `africa-western` / `iberia [1200]` strips) is
-  disregarded.
-
-## License
-
-The original source in this repository — the rules engine, server, and UI — is
-released under the [MIT License](LICENSE) © 2026 John Champaign.
-
-The MIT grant covers that original code only. *Advanced Civilization* is a game
-designed and published by others (Avalon Hill; the design continues today as
-Eagle-Gryphon's *Mega Civilization*); all rights in the game itself belong to its
-creators. The extracted game **data** (area graph, advances, calamities, cards) is
-derived from the publicly distributed VASSAL module and is included here for
-interoperability, not relicensed — it remains subject to the rights of the original
-game's owners. No board **artwork** is distributed (see "Board artwork" above). This
-is an unofficial fan project and is not affiliated with or endorsed by the
-publishers.
-```
-
-
-## Feedback & contributions
-
-The most useful thing you can send is an **in-game problem report** — the report
-button inside the game. Filed while you're playing, it captures the game state and
-context that make an issue reproducible, which helps far more than a code change.
-
-**Pull requests generally won't be merged.** This is a solo-maintained project, and
-reviewing and integrating outside code costs more than it saves. If you open a PR,
-it'll be read as a well-specified bug report or feature request and implemented here
-rather than merged — so it's a fine way to *describe* a change you'd like, just
-please don't expect it to land as-is.
-
-**The whole codebase is MIT-licensed** — fork it and do whatever you want: change
-the rules, reskin it, build and ship your own version. No permission needed; that's
-the point of the license.
+*Advanced Civilization* est un jeu conçu par Francis Tresham et publié à l'origine par Avalon Hill (dont l'héritage se poursuit aujourd'hui avec *Mega Civilization* chez Eagle-Gryphon Games). Les données structurelles (graphe des régions, tables de coûts, caractéristiques des cartes et pistes A.S.T.) sont incluses à des fins d'interopérabilité. Ce projet non officiel est réalisé par des passionnés et n'est ni affilié à, ni approuvé par les détenteurs des droits originaux.
