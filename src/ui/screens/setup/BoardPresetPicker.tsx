@@ -1,5 +1,6 @@
 import type { BoardPreset } from '../../../engine/boards.js';
-import { PRESET_INFO_FR } from './setupTranslations.js';
+import { useTranslation } from '../../i18n/index.js';
+import { getPresetInfo } from './setupTranslations.js';
 
 interface BoardPresetPickerProps {
   presets: BoardPreset[];
@@ -8,21 +9,23 @@ interface BoardPresetPickerProps {
 }
 
 export function BoardPresetPicker({ presets, activePresetId, onSelect }: BoardPresetPickerProps) {
+  const { t, language } = useTranslation();
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <span style={{ fontWeight: 800, fontSize: 13, color: 'var(--civ-gold-light)', textTransform: 'uppercase', letterSpacing: 0.6 }}>
-          Carte Géographique & Théâtre d'Expédition (§16) :
+          {t.setup.mapTheatre}
         </span>
         <span style={{ fontSize: 11, color: 'var(--civ-stone-muted)' }}>
-          Cartographie historique du bassin méditerranéen
+          {t.setup.mapTheatreDesc}
         </span>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 10 }}>
         {presets.map((b) => {
           const isSelected = activePresetId === b.id;
-          const info = PRESET_INFO_FR[b.id] ?? { label: b.label, desc: b.rule };
+          const info = getPresetInfo(b.id, language) ?? { label: b.label, desc: b.rule };
           return (
             <button
               key={b.id}
@@ -56,7 +59,7 @@ export function BoardPresetPicker({ presets, activePresetId, onSelect }: BoardPr
                     color: isSelected ? '#000' : 'var(--civ-marble)',
                   }}
                 >
-                  {b.tokensPerPlayer} pions
+                  {t.setup.tokensCount(b.tokensPerPlayer)}
                 </span>
               </div>
               <div style={{ fontSize: 11, color: isSelected ? 'var(--civ-marble)' : 'var(--civ-stone-muted)', lineHeight: 1.35 }}>

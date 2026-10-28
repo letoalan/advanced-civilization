@@ -11,4 +11,5 @@ export { militaryLast } from './phases/census.js';
 export { floodPlainOf } from './calamity/calamityGeography.js';
 export { areaLimitFor } from './phases/surplus.js';
 export { runCalamity } from './calamity/calamityRunner.js';
+export { tradeRound } from './phases/tradeNegotiation.js';
 export { AUTO_PHASES } from './primitives.js';

@@ -1,7 +1,7 @@
 import './theme/theme.css';
 import { Component, StrictMode, useEffect, useState, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { UpdateBanner, SplashScreen } from 'digital-boardgame-framework/client';
+import { UpdateBanner } from 'digital-boardgame-framework/client';
 import App from './App.js';
 import { Lobby, OnlineGame } from './online.js';
 import DevApp from './dev/DevApp.js';
@@ -112,12 +112,9 @@ function Root() {
   return <>{modal}{body}</>;
 }
 
-const isDev = new URLSearchParams(location.search).has('dev');
-
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <UpdateBanner currentBuild={__DBF_BUILD_ID__} />
-    {!isDev && <SplashScreen title="Advanced Civilization" appId="advanced-civilization" />}
     <ErrorBoundary><Root /></ErrorBoundary>
   </StrictMode>,
 );

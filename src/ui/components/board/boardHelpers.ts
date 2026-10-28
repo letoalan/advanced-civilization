@@ -1,15 +1,28 @@
 import { anchors, BOARD_VIEWBOX } from '../../anchors.js';
 import { civById } from '../../../data/index.js';
 import type { Action, GameState, PlayerId } from '../../../engine/types.js';
+import { translatePhase } from '../../i18n/index.js';
+import { getUiSettings } from '../../theme/settingsStore.js';
 
 export function prettyPhase(p: string): string {
   return p.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase());
 }
 
 export function phaseLabel(s: GameState): string {
-  if (s.pendingStart) return 'Choix des zones de départ';
-  if (s.ninthStack?.awaiting) return 'Achat Or / Ivoire (9e pile)';
-  return prettyPhase(s.phase);
+  const lang = getUiSettings().language ?? 'fr';
+  if (s.pendingStart) {
+    if (lang === 'en') return 'Select Starting Areas';
+    if (lang === 'de') return 'Startgebiete wählen';
+    if (lang === 'es') return 'Elegir áreas de inicio';
+    return 'Choix des zones de départ';
+  }
+  if (s.ninthStack?.awaiting) {
+    if (lang === 'en') return 'Gold / Ivory Purchase (9th stack)';
+    if (lang === 'de') return 'Kauf Gold / Elfenbein (9. Stapel)';
+    if (lang === 'es') return 'Compra Oro / Marfil (9ª pila)';
+    return 'Achat Or / Ivoire (9e pile)';
+  }
+  return translatePhase(s.phase, lang).title;
 }
 
 export function legalAreas(legal: Action[], _phase: string): Set<string> {

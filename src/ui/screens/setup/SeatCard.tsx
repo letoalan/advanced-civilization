@@ -1,7 +1,8 @@
 import { civilizations } from '../../../data/index.js';
 import { unavailableReason, type BoardPreset } from '../../../engine/boards.js';
 import type { LocalSeat } from '../../../local/types.js';
-import { getCivNameFr, translateReason } from './setupTranslations.js';
+import { useTranslation, translateCiv } from '../../i18n/index.js';
+import { translateReason } from './setupTranslations.js';
 
 interface SeatCardProps {
   idx: number;
@@ -22,9 +23,10 @@ export function SeatCard({
   onUpdate,
   onCivChange,
 }: SeatCardProps) {
+  const { t, language } = useTranslation();
   const civInfo = civilizations.find((c) => c.id === seat.civilizationId);
   const civColor = civInfo?.color ?? '#8c602a';
-  const civNameFr = getCivNameFr(seat.civilizationId);
+  const civName = translateCiv(seat.civilizationId, t);
 
   return (
     <div
@@ -52,7 +54,7 @@ export function SeatCard({
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 11, color: 'var(--civ-gold-light)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.6 }}>
-            Siège {idx + 1}
+            {t.setup.seatNumber(idx + 1)}
           </span>
           <span
             style={{
@@ -63,7 +65,7 @@ export function SeatCard({
               letterSpacing: 0.8,
             }}
           >
-            {civNameFr.toUpperCase()}
+            {civName.toUpperCase()}
           </span>
         </div>
 
@@ -84,7 +86,7 @@ export function SeatCard({
               transition: 'all .15s ease',
             }}
           >
-            👤 Humain
+            {t.setup.human}
           </button>
           <button
             type="button"
@@ -101,7 +103,7 @@ export function SeatCard({
               transition: 'all .15s ease',
             }}
           >
-            🤖 IA
+            {t.setup.ai}
           </button>
         </div>
       </div>
@@ -110,7 +112,7 @@ export function SeatCard({
       <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
         <div>
           <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--civ-gold-base)', marginBottom: 4 }}>
-            Civilisation antique :
+            {t.setup.civLabel}
           </label>
           <select
             value={seat.civilizationId}
@@ -132,18 +134,18 @@ export function SeatCard({
               const otherIdx = allSeats.findIndex((s, i) => i !== idx && s.civilizationId === c.id);
               const isTakenByOther = otherIdx !== -1;
               const reason = unavailableReason(activePreset.config, c.id);
-              const frReason = translateReason(reason);
+              const localReason = translateReason(reason, language);
 
               let note = '';
               if (!isAllowed) {
-                note = ` (${frReason || 'non disponible'})`;
+                note = ` (${localReason || t.setup.notAvailable})`;
               } else if (isTakenByOther) {
-                note = ` (Siège ${otherIdx + 1} — permuter)`;
+                note = ` (${t.setup.swapWithSeat(otherIdx + 1)})`;
               }
 
               return (
                 <option key={c.id} value={c.id} disabled={!isAllowed}>
-                  {getCivNameFr(c.id)}{note}
+                  {translateCiv(c.id, t)}{note}
                 </option>
               );
             })}
@@ -153,11 +155,11 @@ export function SeatCard({
         {seat.controller === 'human' ? (
           <div>
             <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--civ-gold-base)', marginBottom: 4 }}>
-              Nom de l'archonte / joueur :
+              {t.setup.playerLabel}
             </label>
             <input
               type="text"
-              placeholder={`Joueur ${idx + 1}`}
+              placeholder={t.setup.playerPlaceholder(idx + 1)}
               value={seat.displayName ?? ''}
               onChange={(e) => onUpdate(idx, { displayName: e.target.value })}
               style={{
@@ -174,7 +176,7 @@ export function SeatCard({
           </div>
         ) : (
           <div style={{ fontSize: 11, color: 'var(--civ-stone-muted)', fontStyle: 'italic', padding: '4px 0' }}>
-            Adversaire automatisé par l'IA Heuristique
+            {t.setup.automatedAi}
           </div>
         )}
       </div>

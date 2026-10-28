@@ -1,20 +1,11 @@
 import { CardFrame } from './CardFrame.js';
 import { calamityById } from '../../data/index.js';
+import { useTranslation } from '../i18n/index.js';
+import { fr } from '../i18n/locales/fr.js';
 
-export const CALAMITY_NAMES_FR: Record<string, string> = {
-  volcano: 'Éruption / Séisme',
-  treachery: 'Trahison',
-  famine: 'Famine',
-  superstition: 'Superstition',
-  civilwar: 'Guerre Civile',
-  slaverevolt: "Révolte d'Esclaves",
-  flood: 'Inondation',
-  barbarianhordes: 'Hordes Barbares',
-  epidemic: 'Épidémie',
-  civildisorder: 'Désordre Civil',
-  iconoclasm: 'Iconoclasme & Hérésie',
-  piracy: 'Piraterie',
-};
+export const CALAMITY_NAMES_FR: Record<string, string> = Object.fromEntries(
+  Object.entries(fr.data.calamities).map(([k, v]) => [k, v.name])
+);
 
 interface CalamityCardProps {
   id: string;
@@ -36,19 +27,22 @@ export function CalamityCard({
   width = 130,
   height = 195,
 }: CalamityCardProps) {
+  const { trCalamity, t, lang } = useTranslation();
   const cal = calamityById.get(id);
-  const titleFr = CALAMITY_NAMES_FR[id] ?? cal?.name ?? id;
+  const { name: title } = trCalamity(id);
   const isTradable = cal?.tradable ?? false;
-  const badgeText = isTradable ? 'Négociable' : 'Non-négociable';
+  const badgeText = isTradable ? t.calamity.tradable : t.calamity.nonTradable;
   const badgeColor = isTradable ? '#55c065' : '#e05555';
+
+  const stackLabel = lang === 'de' ? `Stapel ${cal?.level ?? 2}` : lang === 'es' ? `Pila ${cal?.level ?? 2}` : lang === 'en' ? `Stack ${cal?.level ?? 2}` : `Pile ${cal?.level ?? 2}`;
+  const severityLabel = lang === 'de' ? 'Schweregrad' : lang === 'es' ? 'Severidad' : lang === 'en' ? 'Severity' : 'Gravité';
 
   return (
     <CardFrame
       category="calamities"
       id={id}
-      title={titleFr}
-      subtitle={cal?.name && cal.name !== titleFr ? cal.name : undefined}
-      badge={`Pile ${cal?.level ?? 2}`}
+      title={title}
+      badge={stackLabel}
       badgeColor="#e07777"
       isSelected={isSelected}
       disabled={disabled}
@@ -56,10 +50,16 @@ export function CalamityCard({
       width={width}
       height={height}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 10, marginTop: 2 }}>
-        <span style={{ color: badgeColor, fontWeight: 700 }}>{badgeText}</span>
-        <span style={{ color: '#aaa' }}>Gravité {cal?.severity ?? 1}</span>
-      </div>
+      {width >= 75 ? (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: width < 90 ? 8.5 : 10, marginTop: 1 }}>
+          <span style={{ color: badgeColor, fontWeight: 700 }}>{badgeText}</span>
+          <span style={{ color: '#aaa' }}>{severityLabel} {cal?.severity ?? 1}</span>
+        </div>
+      ) : (
+        <div style={{ fontSize: 7.5, color: badgeColor, fontWeight: 700, marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {isTradable ? '⚡ ' + t.calamity.tradable : '⛔ ' + t.calamity.nonTradable}
+        </div>
+      )}
     </CardFrame>
   );
 }

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { advances as ALL_ADVANCES, civById } from '../../../data/index.js';
 import { advancesFaceValue, creditTowards } from '../../../engine/helpers.js';
 import type { GameState, PlayerId } from '../../../engine/types.js';
+import { useTranslation, translateCiv } from '../../i18n/index.js';
 import { AdvanceCard } from '../../cards/AdvanceCard.js';
 import { AdvanceDetailModal } from './AdvanceDetailModal.js';
 
@@ -13,15 +14,8 @@ export const GROUP_COLOR: Record<string, string> = {
   Religion: '#3a8fc7',
 };
 
-const GROUP_LABEL_FR: Record<string, string> = {
-  Crafts: 'Métiers',
-  Sciences: 'Sciences',
-  Arts: 'Arts',
-  Civics: 'Civisme',
-  Religion: 'Religion',
-};
-
 export function ToolsView({ state, focus }: { state: GameState; focus: PlayerId }) {
+  const { t } = useTranslation();
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
 
@@ -31,6 +25,7 @@ export function ToolsView({ state, focus }: { state: GameState; focus: PlayerId 
   const ownedByGroup = (g: string) => ALL_ADVANCES.filter((a) => owned.has(a.id) && (a.groups as string[]).includes(g)).length;
   const represented = groupNames.filter((g) => ownedByGroup(g) > 0).length;
   const totalValue = advancesFaceValue(p.advances);
+  const civName = translateCiv(focus, t);
 
   const filteredAdvances = selectedGroup
     ? ALL_ADVANCES.filter((a) => (a.groups as string[]).includes(selectedGroup))
@@ -44,17 +39,17 @@ export function ToolsView({ state, focus }: { state: GameState; focus: PlayerId 
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', borderBottom: '1px solid var(--civ-gold-border)', paddingBottom: 8 }}>
         <div>
           <h2 style={{ margin: 0, fontFamily: 'var(--civ-font-display)', letterSpacing: 1.2, color: 'var(--civ-gold-light)', fontSize: 16, textTransform: 'uppercase' }}>
-            🏛️ Galerie des Progrès — {civById.get(focus)?.name}
+            {t.views.tools.title(civName)}
           </h2>
           <span style={{ fontSize: 11, color: 'var(--civ-stone-muted)' }}>
-            {owned.size} progrès acquis sur {ALL_ADVANCES.length}
+            {t.views.tools.acquiredCount(owned.size, ALL_ADVANCES.length)}
           </span>
         </div>
         <div style={{ display: 'flex', gap: 6, alignItems: 'baseline' }}>
           <span style={{ fontSize: 22, fontWeight: 900, color: 'var(--civ-gold-light)', textShadow: '0 0 12px var(--civ-gold-glow)' }}>
             {totalValue}
           </span>
-          <span style={{ fontSize: 11, color: 'var(--civ-stone-muted)' }}>points A.S.T. (§33.25)</span>
+          <span style={{ fontSize: 11, color: 'var(--civ-stone-muted)' }}>{t.views.tools.astPoints}</span>
         </div>
       </div>
 
@@ -65,12 +60,13 @@ export function ToolsView({ state, focus }: { state: GameState; focus: PlayerId 
           className={`glass-btn ${selectedGroup === null ? 'glass-btn--primary' : ''}`}
           style={{ padding: '3px 9px', fontSize: 11 }}
         >
-          Tous ({ALL_ADVANCES.length})
+          {t.views.tools.allCategories(ALL_ADVANCES.length)}
         </button>
 
         {groupNames.map((g) => {
           const isAct = selectedGroup === g;
           const count = ownedByGroup(g);
+          const groupLabel = t.advances.categories[g as keyof typeof t.advances.categories] ?? g;
           return (
             <button
               key={g}
@@ -88,16 +84,16 @@ export function ToolsView({ state, focus }: { state: GameState; focus: PlayerId 
               }}
             >
               <span style={{ width: 7, height: 7, borderRadius: '50%', background: GROUP_COLOR[g] }} />
-              <span>{GROUP_LABEL_FR[g] ?? g}</span>
+              <span>{groupLabel}</span>
               <span style={{ opacity: 0.8, fontSize: 10 }}>({count})</span>
             </button>
           );
         })}
 
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 11 }}>
-          <span style={{ color: 'var(--civ-stone-muted)' }}>Âge du Fer :</span>
+          <span style={{ color: 'var(--civ-stone-muted)' }}>{t.views.tools.ironAgeReq}</span>
           <b style={{ color: represented >= 5 ? '#86efac' : 'var(--civ-gold-base)' }}>
-            {represented}/5 domaines
+            {t.views.tools.domainsCount(represented)}
           </b>
         </div>
       </div>

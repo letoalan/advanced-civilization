@@ -60,7 +60,7 @@ export function enterPhase(s: GameState, phase: Phase): void {
     s.actedThisPhase = [];
     if (phase === 'trade') {
       const opener = Math.max(0, s.turn - 1) % Math.max(1, s.activeOrder.length);
-      s.negotiation = { turnPointer: opener, passStreak: 0, actions: 0, nextOfferId: 0, done: [], offers: [], completed: [], waitStreak: 0 };
+      s.negotiation = { turnPointer: opener, passStreak: 0, actions: 0, nextOfferId: 0, done: [], offers: [], completed: [], waitStreak: 0, round: 1, maxRounds: 3 };
     }
     if (phase === 'shipConstruction') setupShipMaintenance(s);
     if (phase === 'taxation') setupTaxation(s);

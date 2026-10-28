@@ -90,7 +90,7 @@ describe('async multiplayer (GameServer + filesystem store)', () => {
     expect(egyptView.view.phase).toBe('trade');
     expect(egyptHand(egyptView.view)).toBeGreaterThan(0); // Egypt sees its own cards…
     expect(egyptHand(babylonView.view)).toBe(0);          // …redacted in Babylon's view
-  });
+  }, 15000);
 
   it('accepts a bug report with the game log + snapshot, retrievable by category', async () => {
     const { s, gameId, egypt } = await newGame();

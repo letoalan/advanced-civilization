@@ -1,3 +1,5 @@
+import { useTranslation } from '../../i18n/index.js';
+
 interface GameOptionsPickerProps {
   privacyMode: 'handoff' | 'open-table';
   aiPace: 'instant' | 'readable';
@@ -11,6 +13,8 @@ export function GameOptionsPicker({
   onPrivacyChange,
   onAiPaceChange,
 }: GameOptionsPickerProps) {
+  const { t } = useTranslation();
+
   return (
     <div
       style={{
@@ -29,7 +33,7 @@ export function GameOptionsPicker({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontWeight: 800, fontSize: 12, color: 'var(--civ-gold-light)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            🔒 Confidentialité des mains :
+            {t.setup.privacyTitle}
           </span>
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
@@ -39,7 +43,7 @@ export function GameOptionsPicker({
             onClick={() => onPrivacyChange('handoff')}
             style={{ flex: 1, padding: '7px 10px', fontSize: 11 }}
           >
-            Passage secret
+            {t.setup.privacyHandoff}
           </button>
           <button
             type="button"
@@ -47,13 +51,13 @@ export function GameOptionsPicker({
             onClick={() => onPrivacyChange('open-table')}
             style={{ flex: 1, padding: '7px 10px', fontSize: 11 }}
           >
-            Table ouverte
+            {t.setup.privacyOpenTable}
           </button>
         </div>
         <div style={{ fontSize: 11, color: 'var(--civ-stone-muted)', lineHeight: 1.35 }}>
           {privacyMode === 'handoff'
-            ? 'Écran noir de transition entre les joueurs humains pour masquer les cartes et calamités.'
-            : 'Toutes les mains sont visibles en continu. Idéal en solo multi-sièges ou apprentissage.'}
+            ? t.setup.privacyHandoffDesc
+            : t.setup.privacyOpenTableDesc}
         </div>
       </div>
 
@@ -61,7 +65,7 @@ export function GameOptionsPicker({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontWeight: 800, fontSize: 12, color: 'var(--civ-gold-light)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            ⚡ Cadence de jeu de l'IA :
+            {t.setup.aiPaceTitle}
           </span>
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
@@ -71,7 +75,7 @@ export function GameOptionsPicker({
             onClick={() => onAiPaceChange('readable')}
             style={{ flex: 1, padding: '7px 10px', fontSize: 11 }}
           >
-            Lisible (temporisé)
+            {t.setup.aiPaceReadable}
           </button>
           <button
             type="button"
@@ -79,13 +83,13 @@ export function GameOptionsPicker({
             onClick={() => onAiPaceChange('instant')}
             style={{ flex: 1, padding: '7px 10px', fontSize: 11 }}
           >
-            Instantané
+            {t.setup.aiPaceInstant}
           </button>
         </div>
         <div style={{ fontSize: 11, color: 'var(--civ-stone-muted)', lineHeight: 1.35 }}>
           {aiPace === 'readable'
-            ? 'Temporisation de 1 à 2 secondes pour observer les mouvements et décisions de l’IA.'
-            : 'Exécution immédiate des calculs et phases de l’IA sans pause.'}
+            ? t.setup.aiPaceReadableDesc
+            : t.setup.aiPaceInstantDesc}
         </div>
       </div>
     </div>

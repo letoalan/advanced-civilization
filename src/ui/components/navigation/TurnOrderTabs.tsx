@@ -1,5 +1,6 @@
 import { civById } from '../../../data/index.js';
 import type { GameState, PlayerId } from '../../../engine/types.js';
+import { useTranslation, translateCiv } from '../../i18n/index.js';
 
 interface TurnOrderTabsProps {
   state: GameState;
@@ -8,6 +9,15 @@ interface TurnOrderTabsProps {
 }
 
 export function TurnOrderTabs({ state, actor, seats }: TurnOrderTabsProps) {
+  const { t, language } = useTranslation();
+
+  const orderLabel = {
+    fr: 'Ordre :',
+    en: 'Order:',
+    de: 'Reihenfolge:',
+    es: 'Orden:',
+  }[language] ?? 'Ordre :';
+
   return (
     <aside
       className="animate-fade-in"
@@ -41,11 +51,12 @@ export function TurnOrderTabs({ state, actor, seats }: TurnOrderTabsProps) {
           marginRight: 2,
         }}
       >
-        Ordre :
+        {orderLabel}
       </span>
       {state.activeOrder.map((id, idx) => {
         const isAct = actor === id;
         const civ = civById.get(id);
+        const name = translateCiv(id, t);
         return (
           <div
             key={id}
@@ -70,8 +81,8 @@ export function TurnOrderTabs({ state, actor, seats }: TurnOrderTabsProps) {
                 boxShadow: isAct ? `0 0 6px ${civ?.color ?? '#ffd23f'}` : undefined,
               }}
             />
-            <span>{civ?.name}</span>
-            {seats[id] === 'ai' && <span style={{ opacity: 0.5, fontSize: 9 }}>IA</span>}
+            <span>{name}</span>
+            {seats[id] === 'ai' && <span style={{ opacity: 0.5, fontSize: 9 }}>{t.common.ai}</span>}
             {idx < state.activeOrder.length - 1 && <span style={{ opacity: 0.3, marginLeft: 2 }}>➔</span>}
           </div>
         );

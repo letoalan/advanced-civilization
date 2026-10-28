@@ -12,11 +12,21 @@ import {
 } from '../tradeHelpers.js';
 import type { GameState, PlayerId, TradeBundle } from '../types.js';
 
+/** Calculate the current negotiation round and max rounds (standard digital/turn cap is 3 rounds). */
+export function tradeRound(s: GameState): { current: number; max: number } {
+  const n = s.negotiation;
+  const max = n.maxRounds ?? 3;
+  const playersCount = Math.max(1, s.activeOrder.length);
+  const current = Math.min(max, Math.floor((n.actions ?? 0) / playersCount) + 1);
+  return { current, max };
+}
+
 /** The trade phase is over (no pending offer) once everyone has passed in a row,
- *  or the generous per-phase proposal cap is hit (bounds an eager AI). */
+ *  or the 3-round negotiation cap is reached. */
 export function tradePhaseEnded(s: GameState): boolean {
   const n = s.negotiation;
-  const cap = 12 * Math.max(1, s.activeOrder.length);
+  const maxRounds = n.maxRounds ?? 3;
+  const cap = maxRounds * Math.max(1, s.activeOrder.length);
   const done = n.done ?? [];
   const trading = s.activeOrder.filter((p) => !done.includes(p));
   return trading.length === 0 || (n.actions ?? 0) >= cap || (n.waitStreak ?? 0) >= trading.length;

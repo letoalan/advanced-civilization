@@ -1,5 +1,6 @@
 import { advanceById, ADVANCE_EFFECTS } from '../../../data/index.js';
 import { CloseIcon } from '../../theme/icons/index.js';
+import { useTranslation, translateAdvance } from '../../i18n/index.js';
 import { GROUP_COLOR } from './ToolsView.js';
 
 interface AdvanceDetailModalProps {
@@ -9,18 +10,15 @@ interface AdvanceDetailModalProps {
   creditDiscount?: number;
 }
 
-const GROUP_LABEL_FR: Record<string, string> = {
-  Crafts: 'Métiers',
-  Arts: 'Arts',
-  Civics: 'Civisme',
-  Sciences: 'Sciences',
-  Religion: 'Religion',
-};
-
 export function AdvanceDetailModal({ id, onClose, owned, creditDiscount = 0 }: AdvanceDetailModalProps) {
+  const { t } = useTranslation();
   if (!id) return null;
   const a = advanceById.get(id);
   if (!a) return null;
+
+  const tr = translateAdvance(id, t);
+  const advName = tr.name || a.name;
+  const advDesc = tr.desc || ADVANCE_EFFECTS[id] || t.views.advanceDetail.noLore;
 
   const primaryGroup = a.groups[0] ?? 'Crafts';
   const groupColor = GROUP_COLOR[primaryGroup] ?? 'var(--civ-gold-base)';
@@ -63,16 +61,16 @@ export function AdvanceDetailModal({ id, onClose, owned, creditDiscount = 0 }: A
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
               <span style={{ width: 10, height: 10, borderRadius: '50%', background: groupColor, boxShadow: `0 0 8px ${groupColor}` }} />
               <span style={{ fontSize: 11, color: groupColor, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.8 }}>
-                {a.groups.map((g) => GROUP_LABEL_FR[g] ?? g).join(' · ')}
+                {a.groups.map((g) => t.advances.categories[g as keyof typeof t.advances.categories] ?? g).join(' · ')}
               </span>
               {owned && (
                 <span style={{ background: 'rgba(22, 101, 52, 0.35)', color: '#86efac', border: '1px solid #16a34a', padding: '1px 6px', borderRadius: 4, fontSize: 10, fontWeight: 700 }}>
-                  ✓ Acquis
+                  {t.views.advanceDetail.acquired}
                 </span>
               )}
             </div>
             <h2 style={{ margin: 0, fontFamily: 'var(--civ-font-display)', color: 'var(--civ-gold-light)', fontSize: 20 }}>
-              {a.name}
+              {advName}
             </h2>
           </div>
           <button onClick={onClose} className="glass-btn" style={{ padding: '4px 8px' }}>
@@ -83,21 +81,21 @@ export function AdvanceDetailModal({ id, onClose, owned, creditDiscount = 0 }: A
         {/* Card Artwork & Cost Plinth */}
         <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
           <div style={{ width: 110, height: 165, borderRadius: 8, overflow: 'hidden', border: '1px solid var(--civ-gold-border)', flexShrink: 0, boxShadow: 'var(--civ-glass-shadow)' }}>
-            <img src={`/medias/images/advances/${id}.png`} alt={a.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={`/medias/images/advances/${id}.png`} alt={advName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', background: 'rgba(20, 26, 36, 0.7)', borderRadius: 6, border: '1px solid rgba(255,255,255,0.08)' }}>
-              <span style={{ fontSize: 12, color: 'var(--civ-stone-muted)' }}>Coût de base :</span>
+              <span style={{ fontSize: 12, color: 'var(--civ-stone-muted)' }}>{t.views.advanceDetail.baseCost}</span>
               <b style={{ color: 'var(--civ-marble)', fontSize: 13 }}>{a.cost} pts</b>
             </div>
             {creditDiscount > 0 && (
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', background: 'rgba(22, 101, 52, 0.25)', borderRadius: 6, border: '1px solid #16a34a' }}>
-                <span style={{ fontSize: 12, color: '#86efac' }}>Réductions acquises :</span>
+                <span style={{ fontSize: 12, color: '#86efac' }}>{t.views.advanceDetail.discounts}</span>
                 <b style={{ color: '#86efac', fontSize: 13 }}>−{creditDiscount} pts</b>
               </div>
             )}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', background: 'rgba(212, 175, 55, 0.12)', borderRadius: 6, border: '1px solid var(--civ-gold-border)' }}>
-              <span style={{ fontSize: 12, color: 'var(--civ-gold-light)', fontWeight: 700 }}>Coût effectif :</span>
+              <span style={{ fontSize: 12, color: 'var(--civ-gold-light)', fontWeight: 700 }}>{t.views.advanceDetail.effectiveCost}</span>
               <b style={{ color: 'var(--civ-gold-light)', fontSize: 15 }}>{effectiveCost} pts</b>
             </div>
           </div>
@@ -106,29 +104,29 @@ export function AdvanceDetailModal({ id, onClose, owned, creditDiscount = 0 }: A
         {/* Rule / Lore Effect */}
         <div style={{ background: 'rgba(12, 16, 22, 0.85)', padding: 12, borderRadius: 8, border: '1px solid var(--civ-gold-border-subtle)', fontSize: 12, lineHeight: 1.6, color: 'var(--civ-parchment)' }}>
           <b style={{ color: 'var(--civ-gold-light)', display: 'block', marginBottom: 4, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.5 }}>
-            Effet & Texte de Loi :
+            {t.views.advanceDetail.ruleLore}
           </b>
-          {ADVANCE_EFFECTS[id] ?? 'Aucun effet spécial documenté.'}
+          {advDesc}
         </div>
 
         {/* Prerequisites & Granted Credits */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 11 }}>
           {a.prerequisites?.length ? (
             <div style={{ color: 'var(--civ-stone-muted)' }}>
-              Prérequis : <b style={{ color: 'var(--civ-gold-light)' }}>{a.prerequisites.map((p) => advanceById.get(p)?.name ?? p).join(', ')}</b>
+              {t.views.advanceDetail.prerequisites} <b style={{ color: 'var(--civ-gold-light)' }}>{a.prerequisites.map((p) => translateAdvance(p, t).name || advanceById.get(p)?.name || p).join(', ')}</b>
             </div>
           ) : (
-            <div style={{ color: 'var(--civ-stone-muted)' }}>Prérequis : <i>Aucun (progrès initial)</i></div>
+            <div style={{ color: 'var(--civ-stone-muted)' }}>{t.views.advanceDetail.prerequisites} <i>{t.views.advanceDetail.noPrerequisites}</i></div>
           )}
 
           {Object.keys(a.credits.byGroup).length > 0 && (
             <div style={{ color: 'var(--civ-stone-muted)' }}>
-              Réductions de domaine : {Object.entries(a.credits.byGroup).map(([g, v]) => `+${v} à tous les ${GROUP_LABEL_FR[g] ?? g}`).join(', ')}
+              {t.views.advanceDetail.domainDiscounts} {Object.entries(a.credits.byGroup).map(([g, v]) => `+${v} à tous les ${t.advances.categories[g as keyof typeof t.advances.categories] ?? g}`).join(', ')}
             </div>
           )}
           {Object.keys(a.credits.byCard).length > 0 && (
             <div style={{ color: 'var(--civ-stone-muted)' }}>
-              Réductions ciblées : {Object.entries(a.credits.byCard).map(([c, v]) => `+${v} à ${advanceById.get(c)?.name ?? c}`).join(', ')}
+              {t.views.advanceDetail.targetedDiscounts} {Object.entries(a.credits.byCard).map(([c, v]) => `+${v} à ${translateAdvance(c, t).name || advanceById.get(c)?.name || c}`).join(', ')}
             </div>
           )}
         </div>

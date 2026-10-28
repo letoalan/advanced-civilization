@@ -3,6 +3,7 @@ import { boardPresets, availableNations } from '../../engine/boards.js';
 import { validateSessionConfig } from '../../local/session.js';
 import type { LocalSessionConfig, LocalSeat, ControllerType } from '../../local/types.js';
 import type { PlayerId } from '../../engine/types.js';
+import { useTranslation, LanguageSelector } from '../i18n/index.js';
 import {
   SeatCard,
   BoardPresetPicker,
@@ -19,6 +20,7 @@ interface LocalSetupScreenProps {
 const DEFAULT_CIVS: PlayerId[] = ['egypt', 'babylon', 'assyria', 'asia'];
 
 export function LocalSetupScreen({ onLaunch, onBack }: LocalSetupScreenProps) {
+  const { t } = useTranslation();
   const [numPlayers, setNumPlayers] = useState<number>(4);
   const [presetId, setPresetId] = useState<string | null>(null);
   const [privacyMode, setPrivacyMode] = useState<'open-table' | 'handoff'>('handoff');
@@ -82,21 +84,24 @@ export function LocalSetupScreen({ onLaunch, onBack }: LocalSetupScreenProps) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--civ-gold-border)', paddingBottom: 12 }}>
           <div>
             <h2 style={{ margin: 0, fontFamily: 'var(--civ-font-display)', color: 'var(--civ-gold-light)', fontSize: 24, letterSpacing: 1.2, textTransform: 'uppercase' }}>
-              Organisation de l’Expédition
+              {t.setup.title}
             </h2>
             <div style={{ fontFamily: 'var(--civ-font-serif)', fontSize: 14, fontStyle: 'italic', color: 'var(--civ-parchment)', marginTop: 2 }}>
-              Théâtre méditerranéen et sélection des factions de l'Antiquité
+              {t.setup.subtitle}
             </div>
           </div>
-          <button className="glass-btn" onClick={onBack} style={{ padding: '8px 16px' }}>
-            ← Retour au portail
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <LanguageSelector compact />
+            <button className="glass-btn" onClick={onBack} style={{ padding: '8px 16px' }}>
+              {t.setup.back}
+            </button>
+          </div>
         </div>
 
         {/* Nombre de participants */}
         <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 12, padding: '12px 18px', background: 'rgba(14, 18, 25, 0.75)' }}>
           <span style={{ fontFamily: 'var(--civ-font-display)', fontWeight: 800, fontSize: 12, color: 'var(--civ-gold-light)', textTransform: 'uppercase', letterSpacing: 0.8 }}>
-            Nombre de civilisations :
+            {t.setup.numCivs}
           </span>
           <div style={{ display: 'flex', gap: 6 }}>
             {[2, 3, 4, 5, 6, 7, 8].map((n) => (
@@ -111,7 +116,7 @@ export function LocalSetupScreen({ onLaunch, onBack }: LocalSetupScreenProps) {
             ))}
           </div>
           <span style={{ fontSize: 11, color: 'var(--civ-stone-muted)', marginLeft: 'auto' }}>
-            Bassin diplomatique à {numPlayers} empires
+            {t.setup.diplomaticPool(numPlayers)}
           </span>
         </div>
 
@@ -126,10 +131,10 @@ export function LocalSetupScreen({ onLaunch, onBack }: LocalSetupScreenProps) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontFamily: 'var(--civ-font-display)', fontWeight: 800, fontSize: 12, color: 'var(--civ-gold-light)', textTransform: 'uppercase', letterSpacing: 0.8 }}>
-              Sièges des Civilisations :
+              {t.setup.seatsTitle}
             </span>
             <span style={{ fontSize: 11, color: 'var(--civ-stone-muted)' }}>
-              Attribution des délégations humaines et IA · Permutation automatique
+              {t.setup.seatsDesc}
             </span>
           </div>
 
@@ -174,7 +179,7 @@ export function LocalSetupScreen({ onLaunch, onBack }: LocalSetupScreenProps) {
             }}
             onClick={() => validation.valid && onLaunch(currentConfig)}
           >
-            🏛 Ouvrir la Fresque et Lancer l’Expédition
+            {t.setup.launchButton}
           </button>
         </div>
       </div>

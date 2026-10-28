@@ -1,4 +1,5 @@
 import { commodityById } from '../../../../data/index.js';
+import { useTranslation } from '../../../i18n/index.js';
 
 interface WantsPickerProps {
   wants: string[];
@@ -8,14 +9,16 @@ interface WantsPickerProps {
 }
 
 export function WantsPicker({ wants, onToggleWant, commodityOrder, cName }: WantsPickerProps) {
+  const { t } = useTranslation();
+
   return (
     <div style={{ marginTop: 2 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
         <span style={{ fontSize: 11, color: 'var(--civ-gold-light)', fontWeight: 700, textTransform: 'uppercase' }}>
-          Marchandises souhaitées (1–5) : {wants.map(cName).join(', ') || '—'}
+          {t.trade.soughtCommodities} {wants.map(cName).join(', ') || '—'}
         </span>
         <span style={{ fontSize: 10, color: wants.length >= 1 ? '#86efac' : '#f87171' }}>
-          {wants.length}/5 sélectionnée{wants.length > 1 ? 's' : ''}
+          {t.trade.selectedCount(wants.length, 5)}
         </span>
       </div>
 
@@ -35,7 +38,7 @@ export function WantsPicker({ wants, onToggleWant, commodityOrder, cName }: Want
               }}
               onClick={() => onToggleWant(c)}
             >
-              {comm?.name} (P{comm?.stack})
+              {cName(c)} (P{comm?.stack})
             </button>
           );
         })}

@@ -1,20 +1,6 @@
 import { civById, astTrackFor, epochs } from '../../../data/index.js';
 import type { PlayerState, PlayerId } from '../../../engine/types.js';
-
-const EPOCH_NAMES_FR: Record<string, string> = {
-  stone: 'Âge de Pierre',
-  earlyBronze: 'Bronze Ancien',
-  middleBronze: 'Bronze Moyen',
-  lateBronze: 'Bronze Récent',
-  earlyIron: 'Fer Ancien',
-  lateIron: 'Fer Récent',
-  'Stone Age': 'Âge de Pierre',
-  'Early Bronze Age': 'Bronze Ancien',
-  'Middle Bronze Age': 'Bronze Moyen',
-  'Late Bronze Age': 'Bronze Récent',
-  'Early Iron Age': 'Fer Ancien',
-  'Late Iron Age': 'Fer Récent',
-};
+import { useTranslation } from '../../i18n/index.js';
 
 interface CivBadgeProps {
   player: PlayerState;
@@ -23,18 +9,20 @@ interface CivBadgeProps {
 }
 
 export function CivBadge({ player, focus, isActor }: CivBadgeProps) {
+  const { trCiv, trEpoch, t } = useTranslation();
   const civ = civById.get(focus);
   if (!civ) return null;
 
   const track = astTrackFor(focus);
   const currentEpoch = epochs.find((e) => e.id === player.epoch);
-  const epochName = EPOCH_NAMES_FR[currentEpoch?.name ?? player.epoch] ?? (currentEpoch?.name ?? player.epoch);
+  const epochName = trEpoch(currentEpoch?.name ?? player.epoch);
+  const civName = trCiv(focus);
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
       {/* Medallion */}
       <div
-        title={`Civilisation : ${civ.name}${isActor ? ' (À vous de jouer)' : ''}`}
+        title={`${civName}${isActor ? ` (${t.common.yourTurn})` : ''}`}
         style={{
           width: 34,
           height: 34,
@@ -53,7 +41,7 @@ export function CivBadge({ player, focus, isActor }: CivBadgeProps) {
         }}
         className={isActor ? 'animate-pulse' : undefined}
       >
-        {civ.name[0]}
+        {civName[0]}
       </div>
 
       {/* Name and AST progression */}
@@ -70,7 +58,7 @@ export function CivBadge({ player, focus, isActor }: CivBadgeProps) {
               whiteSpace: 'nowrap',
             }}
           >
-            {civ.name}
+            {civName}
           </span>
           {isActor && (
             <span
@@ -85,7 +73,7 @@ export function CivBadge({ player, focus, isActor }: CivBadgeProps) {
                 textTransform: 'uppercase',
               }}
             >
-              Tour actif
+              {t.common.activeTurn}
             </span>
           )}
         </div>

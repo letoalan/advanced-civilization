@@ -1,6 +1,7 @@
 import { civById } from '../../../data/index.js';
 import type { PlayerId } from '../../../engine/types.js';
 import type { LocalSeat } from '../../../local/types.js';
+import { useTranslation, translateCiv } from '../../i18n/index.js';
 
 interface PlayerHandoffModalProps {
   actor: PlayerId;
@@ -19,8 +20,9 @@ export function PlayerHandoffModal({
   onReveal,
   onSwitchToOpenTable,
 }: PlayerHandoffModalProps) {
+  const { t } = useTranslation();
   const civ = civById.get(actor);
-  const civName = civ?.name ?? actor;
+  const civName = translateCiv(actor, t);
   const civColor = civ?.color ?? '#ffd23f';
   const playerName = seat?.displayName ? `${seat.displayName} (${civName})` : civName;
 
@@ -63,16 +65,16 @@ export function PlayerHandoffModal({
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ width: 12, height: 12, borderRadius: '50%', background: civColor, boxShadow: `0 0 8px ${civColor}` }} />
           <span style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 2, color: civColor, fontWeight: 800 }}>
-            Transmission du Commandement
+            {t.handoff.title}
           </span>
         </div>
 
         <h2 style={{ margin: 0, color: 'var(--civ-gold-light)', fontFamily: 'var(--civ-font-display)', fontSize: 24, fontWeight: 800, letterSpacing: 0.8 }}>
-          Au tour de {playerName}
+          {t.handoff.turnOf(playerName)}
         </h2>
 
         <p style={{ margin: 0, fontSize: 13, color: 'var(--civ-stone-muted)', lineHeight: 1.55 }}>
-          Les archives, rouleaux et cartes en main du joueur précédent ont été préservés du regard pour respecter le secret de l'histoire.
+          {t.handoff.desc}
         </p>
 
         <button
@@ -84,7 +86,7 @@ export function PlayerHandoffModal({
           }}
           onClick={onReveal}
         >
-          👁️ Révéler mon audience impériale
+          {t.handoff.revealButton}
         </button>
 
         {onSwitchToOpenTable && (
@@ -100,7 +102,7 @@ export function PlayerHandoffModal({
               marginTop: 4,
             }}
           >
-            Passer en mode « Table ouverte » (désactiver les masquages)
+            {t.handoff.switchToOpenTable}
           </button>
         )}
       </div>

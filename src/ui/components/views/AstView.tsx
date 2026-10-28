@@ -1,5 +1,6 @@
 import { epochs, astTrackFor, civById } from '../../../data/index.js';
 import type { GameState } from '../../../engine/types.js';
+import { useTranslation, translateCiv, translateEpoch } from '../../i18n/index.js';
 
 export const EPOCH_COLOR: Record<string, string> = {
   stone: '#384353',
@@ -9,29 +10,31 @@ export const EPOCH_COLOR: Record<string, string> = {
   lateIron: '#b85d18',
 };
 
-function epochRequirement(r: { cities?: number; cards?: number; cardGroups?: number; perSpaceCardValue?: boolean }): string {
-  const parts: string[] = [];
-  if (r.cities) parts.push(`${r.cities} cité${r.cities > 1 ? 's' : ''}`);
-  if (r.cards) parts.push(`${r.cards} cartes de progrès`);
-  if (r.cardGroups) parts.push(r.cardGroups >= 5 ? '5 groupes représentés' : `${r.cardGroups} groupes`);
-  if (r.perSpaceCardValue) parts.push('valeur de cartes requise');
-  return parts.length ? parts.join(' · ') : 'aucun prérequis';
-}
-
 export function AstView({ state }: { state: GameState }) {
+  const { t } = useTranslation();
+
+  const epochRequirement = (r: { cities?: number; cards?: number; cardGroups?: number; perSpaceCardValue?: boolean }): string => {
+    const parts: string[] = [];
+    if (r.cities) parts.push(t.views.ast.reqCities(r.cities));
+    if (r.cards) parts.push(t.views.ast.reqCards(r.cards));
+    if (r.cardGroups) parts.push(t.views.ast.reqGroups(r.cardGroups));
+    if (r.perSpaceCardValue) parts.push(t.views.ast.reqCardValue);
+    return parts.length ? parts.join(' · ') : t.views.ast.reqNone;
+  };
+
   return (
     <div style={{ color: 'var(--civ-marble)' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', borderBottom: '1px solid var(--civ-gold-border)', paddingBottom: 10, marginBottom: 16 }}>
         <h2 style={{ margin: 0, fontFamily: 'var(--civ-font-display)', letterSpacing: 1.2, color: 'var(--civ-gold-light)', fontSize: 17, textTransform: 'uppercase' }}>
-          ⏳ Tabula Archaeologica — Registre A.S.T.
+          {t.views.ast.title}
         </h2>
         <span style={{ fontSize: 12, color: 'var(--civ-stone-muted)', fontStyle: 'italic', fontFamily: 'var(--civ-font-serif)' }}>
-          Table de Succession Archéologique (§33)
+          {t.views.ast.subtitle}
         </span>
       </div>
 
       <div style={{ fontSize: 11, color: 'var(--civ-gold-base)', fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase', marginBottom: 8 }}>
-        Conditions d’élévation historique par époque :
+        {t.views.ast.requirementsTitle}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 10, marginBottom: 18 }}>
@@ -49,8 +52,12 @@ export function AstView({ state }: { state: GameState }) {
               boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
             }}
           >
-            <div style={{ fontWeight: 800, fontSize: 12, color: 'var(--civ-marble)', marginBottom: 3 }}>{e.name}</div>
-            <div style={{ fontSize: 11, color: 'var(--civ-stone-muted)', lineHeight: 1.35 }}>{epochRequirement(e.requirements)}</div>
+            <div style={{ fontWeight: 800, fontSize: 12, color: 'var(--civ-marble)', marginBottom: 3 }}>
+              {translateEpoch(e.id, t) || e.name}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--civ-stone-muted)', lineHeight: 1.35 }}>
+              {epochRequirement(e.requirements)}
+            </div>
           </div>
         ))}
       </div>
@@ -60,7 +67,7 @@ export function AstView({ state }: { state: GameState }) {
           <thead>
             <tr>
               <th style={{ textAlign: 'left', padding: '4px 8px', color: '#ffd23f', fontSize: 11, fontWeight: 700 }}>
-                Civilisation
+                {t.views.ast.civColumn}
               </th>
               {Array.from({ length: 16 }, (_, i) => i + 1).map((s) => (
                 <th
@@ -77,7 +84,7 @@ export function AstView({ state }: { state: GameState }) {
                   {s}
                 </th>
               ))}
-              <th style={{ padding: '4px 8px', color: '#ffd23f', fontSize: 12 }}>Arrivée</th>
+              <th style={{ padding: '4px 8px', color: '#ffd23f', fontSize: 12 }}>{t.views.ast.finish}</th>
             </tr>
           </thead>
           <tbody>
@@ -86,6 +93,7 @@ export function AstView({ state }: { state: GameState }) {
               const p = state.players[id]!;
               const liaStart = track.epochStart['lateIron'] ?? track.finishSpace;
               const civ = civById.get(id);
+              const civName = translateCiv(id, t);
 
               return (
                 <tr key={id}>
@@ -100,7 +108,7 @@ export function AstView({ state }: { state: GameState }) {
                     }}
                   >
                     <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: civ?.color, marginRight: 6 }} />
-                    {civ?.name}
+                    {civName}
                   </td>
                   {Array.from({ length: track.finishSpace }, (_, i) => i + 1).map((space) => {
                     const epoch = [...epochs].reverse().find((e) => space >= (track.epochStart[e.id] ?? 1))!;
@@ -128,7 +136,7 @@ export function AstView({ state }: { state: GameState }) {
                         {liaVal ?? ''}
                         {here && (
                           <div
-                            title={`Position actuelle : case ${space}`}
+                            title={t.views.ast.currentPosition(space)}
                             style={{
                               position: 'absolute',
                               inset: 0,
@@ -154,7 +162,7 @@ export function AstView({ state }: { state: GameState }) {
                                 textShadow: '0 1px 2px #000',
                               }}
                             >
-                              {civ?.name[0]}
+                              {civName[0]}
                             </div>
                           </div>
                         )}
@@ -170,7 +178,7 @@ export function AstView({ state }: { state: GameState }) {
       </div>
 
       <p style={{ color: '#b8aa8e', fontSize: 11, fontStyle: 'italic', marginTop: 12 }}>
-        * Les valeurs inscrites dans les cases de l'Âge du Fer Récent indiquent les points de valeur de cartes nécessaires pour progresser (§33.25).
+        {t.views.ast.lateIronNote}
       </p>
     </div>
   );

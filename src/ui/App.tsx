@@ -7,7 +7,7 @@ import { useMapArt } from './mapArt.js';
 import type { LocalSaveFile, LocalSessionConfig, ControllerType } from '../local/types.js';
 import { createLocalSession } from '../local/session.js';
 import { saveLocalGame, clearLocalSave } from '../local/persistence.js';
-import { AreaPeekProvider, Board, MapArtBanner, nationFocusArea, scrollBoardTo } from './components/board/index.js';
+import { AreaPeekProvider, Board, nationFocusArea, scrollBoardTo } from './components/board/index.js';
 import { TurnOrderTabs, PlayerHandoffModal, ImperialTopBar, DecisionRibbon, CodexOverlayModal, type View } from './components/navigation/index.js';
 import { ZonePopover } from './components/hud/ZonePopover.js';
 import { useMovementPlanner } from './components/phases/index.js';
@@ -16,6 +16,8 @@ import { CardHand } from './cards/CardHand.js';
 import { PhaseBanner } from './components/cinematic/PhaseBanner.js';
 import { useFocusMode } from './hooks/useFocusMode.js';
 import { useAnimatedMove } from './hooks/useAnimatedMove.js';
+import { useUiSettings } from './theme/settingsStore.js';
+import { useTranslation } from './i18n/index.js';
 
 export * from './components/board/index.js'; export * from './components/navigation/index.js';
 export * from './components/phases/index.js'; export * from './components/modals/index.js'; export * from './components/views/index.js';
@@ -131,9 +133,39 @@ export default function App({ sessionConfig, initialSave, onExitToMenu }: AppPro
     }
   }, []);
 
+  const [settings, setSettings] = useUiSettings();
+  const { t } = useTranslation();
+
+  // Global Spacebar listener to toggle God Mode (Sight of the Gods)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && !['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement)?.tagName)) {
+        e.preventDefault();
+        setSettings({ godMode: !settings.godMode });
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [settings.godMode, setSettings]);
+
   return (
     <AreaPeekProvider>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', background: '#0a0d12', color: '#f0e6d2' }}>
+      <div
+        className={`civ-app-root ${settings.godMode ? 'civ-godmode-active' : ''}`}
+        style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', background: '#0a0d12', color: '#f0e6d2' }}
+      >
+        {/* God Mode Active Floating Banner */}
+        {settings.godMode && (
+          <div
+            className="civ-godmode-banner"
+            onClick={() => setSettings({ godMode: false })}
+            title={t.common.close}
+          >
+            <span>👁️</span>
+            <span>{t.dock.godModeHint}</span>
+            <span style={{ opacity: 0.6, fontSize: 10, marginLeft: 4 }}>[✕]</span>
+          </div>
+        )}
         <CombatModal events={state.lastCombats ?? []} you={focus} />
         <CalamityModal events={state.phase === 'calamity' ? [] : (state.lastCalamities ?? [])} you={focus} />
         {showDiag && <LocalDiagnosticModal state={state} config={config} onClose={() => setShowDiag(false)} />}
@@ -142,7 +174,7 @@ export default function App({ sessionConfig, initialSave, onExitToMenu }: AppPro
         )}
         <PhaseBanner phase={state.phase} turn={state.turn} />
         <CodexOverlayModal view={view} onClose={() => setView('map')} onSelectView={setView} state={state} focus={focus} />
-        <ImperialTopBar state={state} actor={actor} focus={focus} onFocusMine={handleFocusMine} onFocusAll={handleFocusAll} onOpenDiag={() => setShowDiag(true)} onExit={() => onExitToMenu ? onExitToMenu() : location.reload()} isIdle={isIdle} />
+        <ImperialTopBar state={state} actor={actor} focus={focus} mapArt={mapArt} onFocusMine={handleFocusMine} onFocusAll={handleFocusAll} onOpenDiag={() => setShowDiag(true)} onExit={() => onExitToMenu ? onExitToMenu() : location.reload()} isIdle={isIdle} />
 
         {/* Central Map Board */}
         <div ref={boardRef} style={{ flex: 1, position: 'relative', overflow: 'auto', background: '#0b1922', display: 'flex' }}>
@@ -156,7 +188,6 @@ export default function App({ sessionConfig, initialSave, onExitToMenu }: AppPro
             zoomTo={inMovement ? planner.origin : null}
             art={mapArt.art}
           />
-          <MapArtBanner mapArt={mapArt} />
           <ZonePopover areaId={selectedArea} state={state} onClose={() => setSelectedArea(null)} />
         </div>
 

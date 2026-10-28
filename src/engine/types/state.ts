@@ -43,6 +43,8 @@ export interface GameState {
     waitStreak?: number;
     offers: OpenOffer[];
     completed?: CompletedTrade[];
+    round?: number;
+    maxRounds?: number;
   };
   expansion?: {
     remaining: Record<PlayerId, number>;

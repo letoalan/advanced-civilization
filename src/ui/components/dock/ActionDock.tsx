@@ -7,6 +7,8 @@ import { MovementControls } from '../phases/movement/MovementControls.js';
 import type { MovementPlanner } from '../phases/movement/movementTypes.js';
 import { GameOverSummary } from '../navigation/GameOverSummary.js';
 import { DockCodexButtons } from './DockCodexButtons.js';
+import { useTranslation } from '../../i18n/index.js';
+import { useUiSettings } from '../../theme/settingsStore.js';
 
 export interface ActionDockProps {
   state: GameState;
@@ -40,7 +42,10 @@ export function ActionDock({
   result,
   isIdle,
 }: ActionDockProps) {
+  const { trCiv, t } = useTranslation();
+  const [settings, setSettings] = useUiSettings();
   const currentCiv = actor ? civById.get(actor) : null;
+  const civName = actor ? trCiv(actor) : '';
   const passAction = legal.find((a) => a.type === 'pass');
 
   const isTrade = state.phase === 'trade';
@@ -85,17 +90,37 @@ export function ActionDock({
                 }}
               />
               <span style={{ fontWeight: 700, color: '#ffffff', letterSpacing: 0.3 }}>
-                {currentCiv?.name}
+                {civName}
               </span>
               <span style={{ fontSize: 10, color: 'var(--civ-stone-muted)' }}>
-                {isHuman ? '— Votre tour' : '— IA en cours'}
+                {isHuman ? `— ${t.common.yourTurn}` : `— ${t.common.aiTurn}`}
               </span>
             </div>
           )}
         </div>
 
-        {/* Codex Tools buttons */}
-        <DockCodexButtons activeCodex={activeCodex} onOpenCodex={onOpenCodex} />
+        {/* Codex Tools buttons + Quick God Mode & HUD Switcher */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <DockCodexButtons activeCodex={activeCodex} onOpenCodex={onOpenCodex} />
+
+          <button
+            onClick={() => setSettings({ godMode: !settings.godMode })}
+            className={`glass-btn ${settings.godMode ? 'glass-btn--primary' : ''}`}
+            title={t.dock.godModeHint}
+            style={{ padding: '3px 6px', fontSize: 11 }}
+          >
+            <span>{settings.godMode ? '👁️' : '👁️‍🗨️'}</span>
+          </button>
+
+          <button
+            onClick={() => setSettings({ hudStyle: 'ethereal-hud' })}
+            className="glass-btn"
+            title={t.settingsModal.etherealHud}
+            style={{ padding: '3px 6px', fontSize: 10, color: 'var(--civ-gold-light)' }}
+          >
+            {t.dock.hudStyleEthereal}
+          </button>
+        </div>
       </div>
 
       {/* Rejection Error Alert if any */}
@@ -162,7 +187,7 @@ export function ActionDock({
               className="glass-btn glass-btn--primary"
               style={{ padding: '7px 16px', fontSize: 11 }}
             >
-              <span>Terminer la phase</span>
+              <span>{t.common.pass}</span>
               <span style={{ fontSize: 13 }}>➔</span>
             </button>
           </div>

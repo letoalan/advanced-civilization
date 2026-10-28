@@ -228,6 +228,125 @@
   box-sizing: border-box;
 }
 
+/* ==========================================================================
+   OPTION 3 — ETHEREAL HUD & GOD MODE (TRANSPARENCE ÉTHÉRÉE)
+   ========================================================================== */
+
+/* God Mode Active Ghosting */
+.civ-godmode-active .glass-dock,
+.civ-godmode-active .ethereal-hud-capsule,
+.civ-godmode-active .ethereal-slate-overlay,
+.civ-godmode-active .glass-topbar,
+.civ-godmode-active .turn-order-tabs,
+.civ-godmode-active aside {
+  opacity: 0.1 !important;
+  pointer-events: none !important;
+  transition: opacity 0.25s cubic-bezier(0.2, 0, 0, 1) !important;
+  filter: blur(1px);
+}
+
+/* God Mode Banner Indicator */
+.civ-godmode-banner {
+  position: absolute;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 16px;
+  border-radius: var(--civ-radius-pill);
+  background: rgba(14, 20, 32, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--civ-gold-base);
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+  color: var(--civ-gold-light);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  animation: civFadeIn 0.2s ease-out;
+}
+
+/* Ethereal Floating Island Capsule (Option 3 Compact) */
+.ethereal-hud-capsule {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 14px;
+  background: linear-gradient(135deg, rgba(14, 20, 32, 0.65) 0%, rgba(8, 12, 18, 0.48) 100%);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(212, 175, 55, 0.24);
+  border-radius: var(--civ-radius-lg);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  max-width: min(780px, 94vw);
+  box-sizing: border-box;
+  transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ethereal-hud-capsule:hover {
+  background: linear-gradient(135deg, rgba(16, 23, 36, 0.75) 0%, rgba(10, 15, 22, 0.58) 100%);
+  border-color: rgba(212, 175, 55, 0.38);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), 0 0 12px rgba(212, 175, 55, 0.15);
+}
+
+/* Ethereal Trade & Advances Slate Overlay */
+.ethereal-slate-overlay {
+  position: fixed;
+  inset: 56px 20px 16px 20px;
+  z-index: 52;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(145deg, rgba(12, 17, 26, 0.72) 0%, rgba(8, 11, 16, 0.60) 100%);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  border-radius: var(--civ-radius-lg);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(212, 175, 55, 0.12);
+  padding: 12px 18px;
+  box-sizing: border-box;
+  animation: civFadeIn 0.22s ease-out;
+  overflow: hidden;
+}
+
+/* Minimized Floating Trade Pill */
+.ethereal-minimized-pill {
+  position: absolute;
+  bottom: 14px;
+  right: 18px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px;
+  background: linear-gradient(135deg, rgba(16, 22, 34, 0.85) 0%, rgba(10, 14, 20, 0.72) 100%);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--civ-gold-border);
+  border-radius: var(--civ-radius-pill);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 12px rgba(212, 175, 55, 0.2);
+  color: var(--civ-gold-light);
+  cursor: pointer;
+  user-select: none;
+  font-size: 11px;
+  font-weight: 700;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.ethereal-minimized-pill:hover {
+  transform: translateY(-2px);
+  border-color: var(--civ-gold-base);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.7), 0 0 16px rgba(212, 175, 55, 0.35);
+}
+
 /* Museum Sculpted Scrollbar */
 ::-webkit-scrollbar {
   width: 7px;
@@ -328,3 +447,27 @@
     transition-duration: 0.001ms !important;
   }
 }
+
+/* Responsive Language Switcher Labels */
+.lang-flag {
+  display: none;
+}
+.lang-label-short {
+  display: inline;
+}
+.lang-label-full {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .lang-flag {
+    display: inline;
+  }
+  .lang-label-short {
+    display: none;
+  }
+  .lang-label-full {
+    display: inline;
+  }
+}
+

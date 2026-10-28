@@ -1,4 +1,5 @@
 import { useState, useEffect, type ReactNode } from 'react';
+import { useTranslation } from '../../i18n/index.js';
 
 interface StepModalProps {
   token: string;
@@ -10,6 +11,7 @@ interface StepModalProps {
  * Overlay de déroulement pas à pas d'événements (calamités, combats).
  */
 export function StepModal({ token, pages, accent }: StepModalProps) {
+  const { t } = useTranslation();
   const [seen, setSeen] = useState('');
   const [i, setI] = useState(0);
 
@@ -54,16 +56,16 @@ export function StepModal({ token, pages, accent }: StepModalProps) {
         {pages[idx]}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginTop: 20, borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 12 }}>
           <span className="civ-lbl" style={{ color: 'var(--civ-stone-muted)' }}>
-            Événement {idx + 1} / {pages.length}
+            {t.stepModal.eventCounter(idx + 1, pages.length)}
           </span>
           <span style={{ display: 'flex', gap: 8 }}>
             {!last && (
               <button className="glass-btn" onClick={() => setSeen(token)}>
-                Passer
+                {t.stepModal.skip}
               </button>
             )}
             <button className="glass-btn glass-btn--primary" onClick={() => (last ? setSeen(token) : setI((x) => x + 1))}>
-              {last ? 'Continuer' : 'Suivant →'}
+              {last ? t.stepModal.continue : t.stepModal.next}
             </button>
           </span>
         </div>

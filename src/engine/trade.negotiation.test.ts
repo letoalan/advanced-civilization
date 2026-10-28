@@ -103,4 +103,67 @@ describe('trade negotiation (open-offer board)', () => {
     expect(face).toMatchObject({ count: 4, guaranteed: { salt: 2 }, claimed: {}, unspecified: 2, legacy: false });
     expect(bundleFace({ declared: { salt: 2, wine: 1 } })).toMatchObject({ count: 3, guaranteed: {}, legacy: true });
   });
+
+  it('tracks negotiation rounds up to 3 and enforces cap', () => {
+    let s = toTradePhase(createGame({ players: ['egypt', 'babylon'], seed: 9, maxTurns: 60 }));
+    expect(s.negotiation.round).toBe(1);
+    expect(s.negotiation.maxRounds).toBe(3);
+
+    const first = adapter.currentActor(s)!;
+    const second = s.seating.find((p) => p !== first)!;
+
+    s.players[first]!.hand = { salt: 2, ochre: 1 };
+    s.players[second]!.hand = { salt: 2, ochre: 1 };
+
+    // first player posts offer (action 1)
+    s = adapter.applyAction(s, {
+      type: 'postOffer',
+      give: { actual: { salt: 2, ochre: 1 }, declared: { salt: 2 }, count: 3 },
+      wants: ['iron'],
+    }, first);
+
+    // second player posts offer (action 2)
+    s = adapter.applyAction(s, {
+      type: 'postOffer',
+      give: { actual: { salt: 2, ochre: 1 }, declared: { salt: 2 }, count: 3 },
+      wants: ['iron'],
+    }, second);
+
+    expect(s.negotiation.actions).toBe(2);
+  });
+
+  it('allows bluffing with a tradable calamity declared as a commodity claim (§28.3)', () => {
+    let s = toTradePhase(createGame({ players: ['egypt', 'babylon'], seed: 9, maxTurns: 60 }));
+    const from = adapter.currentActor(s)!;
+    const to = s.seating.find((p) => p !== from)!;
+
+    s.players[from]!.hand = { salt: 2, 'calamity:treachery': 1 };
+    s.players[to]!.hand = { iron: 3 };
+
+    // From offers salt 2 (guaranteed) + 1 secret card claimed as iron
+    s = adapter.applyAction(s, {
+      type: 'postOffer',
+      give: {
+        actual: { salt: 2, 'calamity:treachery': 1 },
+        declared: { salt: 2 },
+        count: 3,
+        claimed: { iron: 1 },
+      },
+      wants: ['iron'],
+    }, from);
+
+    const offerId = s.negotiation.offers[0]!.id;
+    s = adapter.applyAction(s, {
+      type: 'respondOffer',
+      offerId,
+      give: { actual: { iron: 3 }, declared: { iron: 2 }, count: 3, claimed: { iron: 1 } },
+    }, to);
+
+    // From accepts response: trade completes, calamity passed
+    s = adapter.applyAction(s, { type: 'acceptResponse', offerId, responder: to }, from);
+    expect(s.players[to]!.hand['calamity:treachery']).toBe(1);
+    expect(s.players[from]!.hand['calamity:treachery']).toBeUndefined();
+    expect((s.negotiation.completed ?? []).length).toBe(1);
+  });
 });
+

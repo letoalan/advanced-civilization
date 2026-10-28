@@ -1,23 +1,31 @@
 import { useEffect, useState } from 'react';
 
+export type SupportedLanguage = 'fr' | 'en' | 'de' | 'es';
 export type EffectsLevel = 'full' | 'reduced' | 'off';
+export type HudStyle = 'ethereal-hud' | 'classic-dock';
 
 export interface UiSettings {
+  language: SupportedLanguage;
   effects: EffectsLevel;
   sound: boolean;
   soundVolume: number;
   focusMode: boolean;
   focusIdleSeconds: number;
+  hudStyle: HudStyle;
+  godMode: boolean;
 }
 
 const STORAGE_KEY = 'advciv_ui_settings';
 
 const DEFAULT_SETTINGS: UiSettings = {
+  language: 'fr',
   effects: 'full',
   sound: false,
   soundVolume: 0.5,
   focusMode: false,
   focusIdleSeconds: 4,
+  hudStyle: 'ethereal-hud',
+  godMode: false,
 };
 
 let currentSettings: UiSettings = loadSettings();

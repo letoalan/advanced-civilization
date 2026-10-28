@@ -3,6 +3,7 @@ import type { GameState, PlayerId } from '../../../engine/types.js';
 import type { View } from './ViewNav.js';
 import { InfoView } from '../views/InfoView.js';
 import { CloseIcon, TechIcon, TradeIcon, AstIcon, ChronicleIcon } from '../../theme/icons/index.js';
+import { useTranslation } from '../../i18n/index.js';
 
 interface CodexOverlayModalProps {
   view: View | null;
@@ -12,14 +13,6 @@ interface CodexOverlayModalProps {
   focus: PlayerId;
 }
 
-const CODEX_TABS: { id: View; label: string; icon: (act: boolean) => React.ReactNode }[] = [
-  { id: 'tools', label: 'Progrès', icon: (act) => <TechIcon size={14} color={act ? '#ffd23f' : 'currentColor'} /> },
-  { id: 'goods', label: 'Commerce', icon: (act) => <TradeIcon size={14} color={act ? '#ffd23f' : 'currentColor'} /> },
-  { id: 'ast', label: 'AST', icon: (act) => <AstIcon size={14} color={act ? '#ffd23f' : 'currentColor'} /> },
-  { id: 'log', label: 'Chroniques', icon: (act) => <ChronicleIcon size={14} color={act ? '#ffd23f' : 'currentColor'} /> },
-  { id: 'census', label: 'Fiches Civs', icon: () => <span>🗂️</span> },
-];
-
 export function CodexOverlayModal({
   view,
   onClose,
@@ -27,6 +20,16 @@ export function CodexOverlayModal({
   state,
   focus,
 }: CodexOverlayModalProps) {
+  const { t } = useTranslation();
+
+  const codexTabs: { id: View; label: string; icon: (act: boolean) => React.ReactNode }[] = [
+    { id: 'tools', label: t.codex.progress, icon: (act) => <TechIcon size={14} color={act ? '#ffd23f' : 'currentColor'} /> },
+    { id: 'goods', label: t.codex.trade, icon: (act) => <TradeIcon size={14} color={act ? '#ffd23f' : 'currentColor'} /> },
+    { id: 'ast', label: t.codex.ast, icon: (act) => <AstIcon size={14} color={act ? '#ffd23f' : 'currentColor'} /> },
+    { id: 'log', label: t.codex.chronicles, icon: (act) => <ChronicleIcon size={14} color={act ? '#ffd23f' : 'currentColor'} /> },
+    { id: 'census', label: t.codex.census, icon: () => <span>🗂️</span> },
+  ];
+
   useEffect(() => {
     if (!view || view === 'map') return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -99,10 +102,10 @@ export function CodexOverlayModal({
               }}
             >
               <span>🏛️</span>
-              <span>Archives Impériales</span>
+              <span>{t.codex.title}</span>
             </span>
 
-            {CODEX_TABS.map((tab) => {
+            {codexTabs.map((tab) => {
               const active = tab.id === view;
               return (
                 <button
@@ -119,9 +122,9 @@ export function CodexOverlayModal({
           </div>
 
           {/* Close Codex Button */}
-          <button onClick={onClose} className="glass-btn" title="Fermer les archives (Échap)">
+          <button onClick={onClose} className="glass-btn" title={t.codex.closeTooltip}>
             <CloseIcon size={14} />
-            <span>Fermer</span>
+            <span>{t.codex.close}</span>
           </button>
         </div>
 

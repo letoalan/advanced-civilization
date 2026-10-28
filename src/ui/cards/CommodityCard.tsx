@@ -1,26 +1,9 @@
 import { CardFrame } from './CardFrame.js';
 import { commodityById } from '../../data/index.js';
+import { useTranslation } from '../i18n/index.js';
+import { fr } from '../i18n/locales/fr.js';
 
-export const COMMODITY_NAMES_FR: Record<string, string> = {
-  ochre: 'Ocre',
-  hides: 'Peaux',
-  iron: 'Fer',
-  papyrus: 'Papyrus',
-  salt: 'Sel',
-  timber: 'Bois',
-  grain: 'Céréales',
-  oil: 'Huile',
-  cloth: 'Tissu',
-  wine: 'Vin',
-  bronze: 'Bronze',
-  silver: 'Argent',
-  resin: 'Résine',
-  spices: 'Épices',
-  dye: 'Teinture',
-  gems: 'Pierres précieuses',
-  gold: 'Or',
-  ivory: 'Ivoire',
-};
+export const COMMODITY_NAMES_FR: Record<string, string> = fr.data.commodities;
 
 interface CommodityCardProps {
   id: string;
@@ -44,20 +27,22 @@ export function CommodityCard({
   width = 130,
   height = 195,
 }: CommodityCardProps) {
+  const { trCommodity, lang, t } = useTranslation();
   const comm = commodityById.get(id);
-  const titleFr = COMMODITY_NAMES_FR[id] ?? comm?.name ?? id;
-  const subtitle = comm?.name && comm.name !== titleFr ? comm.name : undefined;
+  const title = trCommodity(id);
   const value = comm?.value ?? 1;
   const stack = comm?.stack ?? 1;
   const setValue = count && count > 0 ? count * count * value : value;
+
+  const stackLabel = lang === 'de' ? `Stapel ${stack}` : lang === 'es' ? `Pila ${stack}` : lang === 'en' ? `Stack ${stack}` : `Pile ${stack}`;
+  const setLabel = lang === 'en' ? 'Set' : lang === 'de' ? 'Set' : lang === 'es' ? 'Serie' : 'Série';
 
   return (
     <CardFrame
       category="commodities"
       id={id}
-      title={titleFr}
-      subtitle={subtitle}
-      badge={`Pile ${stack}`}
+      title={title}
+      badge={stackLabel}
       badgeColor="#ffd23f"
       count={count}
       isSelected={isSelected}
@@ -69,7 +54,7 @@ export function CommodityCard({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 10, color: '#bbb', marginTop: 2 }}>
         <span>Val. : {value}</span>
         {count && count > 1 ? (
-          <span style={{ color: '#ffd23f', fontWeight: 800 }}>Série : {setValue} pts</span>
+          <span style={{ color: '#ffd23f', fontWeight: 800 }}>{setLabel} : {setValue} {t.common.points}</span>
         ) : (
           <span>max {comm?.count ?? 7}</span>
         )}
